@@ -20,21 +20,23 @@ st.set_page_config(
     initial_sidebar_state=INITIAL_SIDEBAR_STATE
 )
 
-# ⚡ ULTIMATE DARK THEME & RESPONSIVE FIX
+# ⚡ PROFESSIONAL MODERN SAAS STYLING (DARK MODE)
 st.markdown("""
 <style>
-    /* Force Dark Background across all elements */
+    /* Global App Container */
     .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
         background-color: #0D1117 !important;
         color: #C9D1D9 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     
+    /* Professional Sidebar Styling */
     [data-testid="stSidebar"] {
         background-color: #161B22 !important;
         border-right: 1px solid #30363D !important;
     }
 
-    /* Complete DOM Hiding via CSS */
+    /* Hide Default Header Elements */
     #MainMenu, header, footer, [data-testid="stHeader"], [data-testid="stToolbar"], 
     [data-testid="stDecoration"], [data-testid="stStatusWidget"], .stAppHeader,
     div[class*="stAppHeader"], div[class*="ViewerBadge"] {
@@ -42,98 +44,115 @@ st.markdown("""
         visibility: hidden !important;
     }
     
-    /* Dynamic Layout Spacing */
+    /* Main Layout Margins */
     .block-container {
-        padding-top: 1.5rem !important;
+        padding-top: 2rem !important;
         padding-bottom: 5rem !important;
-        padding-left: 1.5rem !important;
-        padding-right: 1.5rem !important;
-        max-width: 100% !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+        max-width: 1000px !important;
+        margin: 0 auto;
     }
 
-    /* Brand Header - High Contrast & Scalable Text */
+    /* Professional Sidebar Header */
+    .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #30363D;
+        margin-bottom: 15px;
+    }
+    .sidebar-brand h2 {
+        font-size: 1.15rem !important;
+        font-weight: 700 !important;
+        color: #F0F6FC !important;
+        margin: 0 !important;
+    }
+
+    /* Main Section Header */
     .brand-header {
         text-align: center;
-        margin-bottom: 2rem;
-        padding: 0 10px;
+        margin-bottom: 2.5rem;
     }
     
     .brand-title {
-        font-size: clamp(1.6rem, 4vw, 2.5rem) !important;
+        font-size: clamp(1.8rem, 4vw, 2.6rem) !important;
         font-weight: 800 !important;
         color: #FFFFFF !important;
         letter-spacing: -0.5px;
-        line-height: 1.25 !important;
+        line-height: 1.2 !important;
     }
     
     .brand-subtitle {
         color: #8B949E !important;
-        font-size: clamp(0.85rem, 2vw, 1rem) !important;
-        margin-top: 6px;
+        font-size: clamp(0.9rem, 2vw, 1.05rem) !important;
+        margin-top: 8px;
     }
 
-    /* Mode Cards with Solid Dark Background */
+    /* Modern Glass Cards */
     .mode-card {
         background-color: #161B22 !important;
         border: 1px solid #30363D !important;
-        border-radius: 12px;
-        padding: 20px;
+        border-radius: 10px;
+        padding: 18px 20px;
         margin-bottom: 15px;
         height: 100%;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: transform 0.2s ease, border-color 0.2s ease;
     }
-    
+    .mode-card:hover {
+        border-color: #58A6FF !important;
+        transform: translateY(-2px);
+    }
     .mode-card h4 {
         color: #F0F6FC !important;
-        font-size: 1.1rem !important;
+        font-size: 1.05rem !important;
         font-weight: 600;
         margin-top: 0;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
-    
     .mode-card p {
         color: #8B949E !important;
-        font-size: 0.9rem !important;
+        font-size: 0.88rem !important;
         margin-bottom: 0;
-        line-height: 1.4;
+        line-height: 1.45;
     }
 
-    /* Buttons styling */
+    /* UI Badges */
+    .pro-badge {
+        background-color: #1F6FEB;
+        color: #FFFFFF;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    /* Stylish Buttons */
     .stButton>button {
         border-radius: 8px !important;
         background-color: #21262D !important;
         color: #C9D1D9 !important;
         border: 1px solid #30363D !important;
         font-weight: 500 !important;
-        transition: all 0.2s ease-in-out !important;
+        transition: all 0.2s ease !important;
     }
-    
     .stButton>button:hover {
         background-color: #30363D !important;
         border-color: #8B949E !important;
         color: #FFFFFF !important;
     }
-    
-    .pro-badge {
-        background-color: #238636;
-        color: white;
-        padding: 3px 8px;
-        border-radius: 6px;
-        font-size: 0.8rem;
-        font-weight: bold;
-    }
 
-    /* Mobile Screens Override */
+    /* Mobile Friendly Tweaks */
     @media (max-width: 768px) {
         .block-container {
-            padding-left: 0.8rem !important;
-            padding-right: 0.8rem !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            padding-top: 1rem !important;
         }
-        
         [data-testid="column"] {
             width: 100% !important;
             flex: 1 1 100% !important;
-            min-width: 100% !important;
             margin-bottom: 10px;
         }
     }
@@ -313,14 +332,20 @@ current_chat = st.session_state.all_chats[current_id]
 # 4. SIDEBAR CONTROLS & MONETIZATION
 # ==========================================
 with st.sidebar:
-    st.markdown("<h3 style='font-weight:700; color:#FFFFFF;'>⚙️ Settings</h3>", unsafe_allow_html=True)
-    st.markdown("🟢 **Current Plan:** <span class='pro-badge' style='background-color:#1F6FEB;'>Free Mode</span>", unsafe_allow_html=True)
+    st.markdown("""
+        <div class='sidebar-brand'>
+            <span style='font-size:1.5rem;'>🤖</span>
+            <h2>AI Assistant</h2>
+        </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("🟢 **Status:** <span class='pro-badge'>Free Plan</span>", unsafe_allow_html=True)
     
     st.markdown("""
-        <div style="background-color:#0D1117; border:1px solid #30363D; border-radius:8px; padding:12px; margin:10px 0;">
-            <p style="margin:0; font-size:0.85rem; color:#8B949E;">Want unlimited high-speed AI responses & priority servers?</p>
+        <div style="background-color:#0D1117; border:1px solid #30363D; border-radius:8px; padding:12px; margin:12px 0;">
+            <p style="margin:0; font-size:0.8rem; color:#8B949E; line-height:1.3;">Upgrade for unlimited speed & priority AI models.</p>
             <a href="https://ai-roaster.lemonsqueezy.com" target="_blank" style="text-decoration:none;">
-                <button style="width:100%; margin-top:8px; background-color:#238636; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold;">
+                <button style="width:100%; margin-top:8px; background-color:#238636; color:white; border:none; padding:7px; border-radius:6px; cursor:pointer; font-weight:600; font-size:0.85rem;">
                     ⚡ Upgrade to Pro
                 </button>
             </a>
@@ -328,7 +353,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     language = st.selectbox(
-        "Response Language:",
+        "🌐 Response Language:",
         [
             "Roman Urdu", 
             "Roman Hindi", 
@@ -346,19 +371,21 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown("<h4 style='color:#FFFFFF;'>🎯 AI Persona</h4>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#8B949E; font-size:0.85rem; font-weight:600; margin-bottom:8px;'>AI MODE</p>", unsafe_allow_html=True)
     active_mode = st.radio(
-        "Select Persona:",
-        ["🔥 Savage Roast Mode", "🧠 Thinking & Career Assistant"]
+        "Select Mode:",
+        ["🔥 Savage Roast Mode", "🧠 Thinking & Career Assistant"],
+        label_visibility="collapsed"
     )
 
     roast_level = "Medium"
     if active_mode == "🔥 Savage Roast Mode":
-        st.markdown("<h4 style='color:#FFFFFF;'>🌶️ Roast Intensity</h4>", unsafe_allow_html=True)
+        st.markdown("<p style='color:#8B949E; font-size:0.85rem; font-weight:600; margin-top:12px; margin-bottom:4px;'>ROAST INTENSITY</p>", unsafe_allow_html=True)
         roast_level = st.select_slider(
             "Level:",
             options=["Normal", "Medium", "Hard"],
-            value="Medium"
+            value="Medium",
+            label_visibility="collapsed"
         )
 
     st.markdown("---")
@@ -367,7 +394,7 @@ with st.sidebar:
         start_new_chat()
         st.rerun()
 
-    st.markdown("<h5 style='margin-top: 15px; color:#8B949E;'>Recent Sessions</h5>", unsafe_allow_html=True)
+    st.markdown("<p style='margin-top: 15px; color:#8B949E; font-size:0.85rem; font-weight:600;'>RECENT CHATS</p>", unsafe_allow_html=True)
     
     for c_id in list(st.session_state.all_chats.keys())[::-1]:
         chat_info = st.session_state.all_chats[c_id]
@@ -390,7 +417,7 @@ with st.sidebar:
 st.markdown("""
     <div class='brand-header'>
         <h1 class='brand-title'>AI Roaster & Career Assistant</h1>
-        <p class='brand-subtitle'>Chat casually or attach files directly in one smart input bar.</p>
+        <p class='brand-subtitle'>Chat casually or attach PDF files directly for sharp AI analysis.</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -407,7 +434,7 @@ if not current_chat["messages"]:
         st.markdown("""
             <div class='mode-card'>
                 <h4>🧠 Career Assistant Mode</h4>
-                <p>Get ATS breakdowns, career guidance, and actionable tech tips.</p>
+                <p>Get ATS breakdowns, professional career guidance, and actionable tech advice.</p>
             </div>
         """, unsafe_allow_html=True)
 
