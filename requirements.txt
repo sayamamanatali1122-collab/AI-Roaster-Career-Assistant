@@ -1,3 +1,5 @@
 streamlit
 pypdf
 groq
+streamlit
+google-generativeai
