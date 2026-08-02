@@ -20,20 +20,26 @@ st.set_page_config(
     initial_sidebar_state=INITIAL_SIDEBAR_STATE
 )
 
-# Professional CSS + 100% COMPLETE HIDE for Streamlit Header, GitHub Icon & Footer
+# ⚡ ULTIMATE CSS & JS HEADER REMOVER (Hides GitHub Icon, Top Bar & Footer)
 st.markdown("""
 <style>
-    /* ALL STREAMLIT HEADERS, FOOTERS & GITHUB ICONS COMPLETE HIDE */
+    /* Complete DOM Hiding via CSS */
     #MainMenu {visibility: hidden !important;}
     header {visibility: hidden !important;}
     footer {visibility: hidden !important;}
     [data-testid="stHeader"] {display: none !important;}
+    [data-testid="stToolbar"] {display: none !important;}
+    [data-testid="stDecoration"] {display: none !important;}
+    [data-testid="stStatusWidget"] {display: none !important;}
     .stAppHeader {display: none !important;}
     .st-emotion-cache-12fmwqi {display: none !important;}
-    [data-testid="stToolbar"] {display: none !important;}
-
+    .st-emotion-cache-15ec0x0 {display: none !important;}
+    .st-emotion-cache-18ni7ap {display: none !important;}
+    div[class*="stAppHeader"] {display: none !important;}
+    div[class*="ViewerBadge"] {display: none !important;}
+    
     .block-container {
-        padding-top: 1.8rem !important;
+        padding-top: 1rem !important;
         padding-bottom: 3rem !important;
     }
     .brand-header {
@@ -90,6 +96,15 @@ st.markdown("""
         font-weight: bold;
     }
 </style>
+
+<!-- JavaScript Fallback to forcibly remove header if CSS fails -->
+<script>
+    const removeHeader = () => {
+        const headers = document.querySelectorAll('header, [data-testid="stHeader"], [data-testid="stToolbar"]');
+        headers.forEach(h => h.remove());
+    };
+    setInterval(removeHeader, 300);
+</script>
 """, unsafe_allow_html=True)
 
 # ==========================================
