@@ -1,5 +1,6 @@
 import os
 import datetime
+import requests
 import streamlit as st
 from pypdf import PdfReader
 from groq import Groq
@@ -122,7 +123,21 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. HELPER FUNCTIONS & AI ENGINE
+# 2. SESSION STATE & SUBSCRIPTION INIT
+# ==========================================
+if "is_pro" not in st.session_state:
+    st.session_state.is_pro = False
+
+if "all_chats" not in st.session_state:
+    st.session_state.all_chats = {}
+
+if "current_chat_id" not in st.session_state:
+    initial_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    st.session_state.all_chats[initial_id] = {"title": "New Chat", "messages": []}
+    st.session_state.current_chat_id = initial_id
+
+# ==========================================
+# 3. HELPER FUNCTIONS & AI ENGINE
 # ==========================================
 def read_pdf(uploaded_file):
     try:
@@ -139,7 +154,6 @@ def read_pdf(uploaded_file):
 
 def get_effective_api_key():
     MY_GROQ_KEY = ""
-    
     try:
         if "GROQ_API_KEY" in st.secrets and st.secrets["GROQ_API_KEY"]:
             return st.secrets["GROQ_API_KEY"]
@@ -152,10 +166,26 @@ def get_effective_api_key():
         
     return MY_GROQ_KEY
 
-def call_groq_with_fallback(client, messages, temperature=0.7, max_tokens=1500):
+def verify_lemonsqueezy_license(license_key):
+    url = "https://api.lemonsqueezy.com/v1/licenses/validate"
+    payload = {"license_key": license_key.strip()}
+    try:
+        response = requests.post(url, data=payload, timeout=10)
+        data = response.json()
+        if data.get("valid", False):
+            return True, "License successfully verified!"
+        else:
+            return False, data.get("error", "Invalid license key.")
+    except Exception as e:
+        return False, f"Verification error: {str(e)}"
+
+def call_groq_with_fallback(client, messages, temperature=0.7, max_tokens=1500, is_pro=False):
+    primary_model = "llama-3.3-70b-versatile" if is_pro else "llama-3.1-8b-instant"
+    fallback_model = "llama-3.1-8b-instant"
+
     try:
         return client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model=primary_model,
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
@@ -164,7 +194,7 @@ def call_groq_with_fallback(client, messages, temperature=0.7, max_tokens=1500):
         error_msg = str(e).lower()
         if "429" in error_msg or "rate_limit" in error_msg or "tokens" in error_msg:
             return client.chat.completions.create(
-                model="llama-3.1-8b-instant",
+                model=fallback_model,
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
@@ -182,7 +212,8 @@ def generate_chat_title(first_user_msg):
             client, 
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3,
-            max_tokens=15
+            max_tokens=15,
+            is_pro=st.session_state.is_pro
         )
         title = completion.choices[0].message.content.strip().replace('"', '')
         return title[:28]
@@ -250,21 +281,11 @@ def get_ai_response(messages_history, active_mode, roast_level, language):
             messages=formatted_messages,
             temperature=0.95 if active_mode == "🔥 Savage Roast Mode" else 0.2,
             max_tokens=1500,
+            is_pro=st.session_state.is_pro
         )
         return completion.choices[0].message.content
     except Exception as e:
         return f"⚠️ **Error:** {str(e)}"
-
-# ==========================================
-# 3. SESSION MANAGEMENT
-# ==========================================
-if "all_chats" not in st.session_state:
-    st.session_state.all_chats = {}
-
-if "current_chat_id" not in st.session_state:
-    initial_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    st.session_state.all_chats[initial_id] = {"title": "New Chat", "messages": []}
-    st.session_state.current_chat_id = initial_id
 
 def start_new_chat():
     new_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -283,7 +304,7 @@ current_id = st.session_state.current_chat_id
 current_chat = st.session_state.all_chats[current_id]
 
 # ==========================================
-# 4. SIDEBAR CONTROLS
+# 4. SIDEBAR CONTROLS & LICENSE ACTIVATION
 # ==========================================
 with st.sidebar:
     st.markdown("""
@@ -293,18 +314,36 @@ with st.sidebar:
         </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("🟢 **Status:** <span style='background:#1F6FEB; color:#FFF; padding:2px 8px; border-radius:10px; font-size:0.75rem;'>Free Plan</span>", unsafe_allow_html=True)
-    
-    st.markdown("""
-        <div style="background-color:#0D1117; border:1px solid #30363D; border-radius:8px; padding:10px; margin:10px 0;">
-            <p style="margin:0; font-size:0.8rem; color:#8B949E;">Upgrade for unlimited speed & priority AI models.</p>
-            <a href="https://airoaster.lemonsqueezy.com/checkout/buy/ec7ff9c8-e11c-4102-aa52-3f5884f8fb2c" target="_blank" style="text-decoration:none;">
-                <button style="width:100%; margin-top:8px; background-color:#238636; color:white; border:none; padding:6px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.85rem;">
-                    ⚡ Upgrade to Pro
-                </button>
-            </a>
-        </div>
-    """, unsafe_allow_html=True)
+    # Dynamic Status Display for Free vs Pro
+    if st.session_state.is_pro:
+        st.markdown("🔥 **Status:** <span style='background:#238636; color:#FFF; padding:2px 8px; border-radius:10px; font-size:0.75rem;'>Pro Active</span>", unsafe_allow_html=True)
+    else:
+        st.markdown("🟢 **Status:** <span style='background:#1F6FEB; color:#FFF; padding:2px 8px; border-radius:10px; font-size:0.75rem;'>Free Plan</span>", unsafe_allow_html=True)
+        
+        st.markdown("""
+            <div style="background-color:#0D1117; border:1px solid #30363D; border-radius:8px; padding:10px; margin:10px 0;">
+                <p style="margin:0; font-size:0.8rem; color:#8B949E;">Upgrade for unlimited speed & priority AI models.</p>
+                <a href="https://airoaster.lemonsqueezy.com/checkout/buy/ec7ff9c8-e11c-4102-aa52-3f5884f8fb2c" target="_blank" style="text-decoration:none;">
+                    <button style="width:100%; margin-top:8px; background-color:#238636; color:white; border:none; padding:6px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.85rem;">
+                        ⚡ Upgrade to Pro ($6)
+                    </button>
+                </a>
+            </div>
+        """, unsafe_allow_html=True)
+
+        with st.expander("🔑 Already paid? Activate License"):
+            license_input = st.text_input("Enter Lemon Squeezy License Key:", type="password")
+            if st.button("Activate Pro"):
+                if license_input:
+                    valid, msg = verify_lemonsqueezy_license(license_input)
+                    if valid:
+                        st.session_state.is_pro = True
+                        st.success("Pro features unlocked successfully!")
+                        st.rerun()
+                    else:
+                        st.error(msg)
+                else:
+                    st.warning("Please enter a valid key.")
 
     language = st.selectbox(
         "Response Language:",
