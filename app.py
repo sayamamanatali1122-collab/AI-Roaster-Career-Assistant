@@ -20,60 +20,77 @@ st.set_page_config(
     initial_sidebar_state=INITIAL_SIDEBAR_STATE
 )
 
-# ⚡ ULTIMATE CSS & JS HEADER REMOVER (Hides GitHub Icon, Top Bar & Footer)
+# ⚡ RESPONSIVE CSS & DOM CLEANUP
 st.markdown("""
 <style>
     /* Complete DOM Hiding via CSS */
-    #MainMenu {visibility: hidden !important;}
-    header {visibility: hidden !important;}
-    footer {visibility: hidden !important;}
-    [data-testid="stHeader"] {display: none !important;}
-    [data-testid="stToolbar"] {display: none !important;}
-    [data-testid="stDecoration"] {display: none !important;}
-    [data-testid="stStatusWidget"] {display: none !important;}
-    .stAppHeader {display: none !important;}
-    .st-emotion-cache-12fmwqi {display: none !important;}
-    .st-emotion-cache-15ec0x0 {display: none !important;}
-    .st-emotion-cache-18ni7ap {display: none !important;}
-    div[class*="stAppHeader"] {display: none !important;}
-    div[class*="ViewerBadge"] {display: none !important;}
-    
-    .block-container {
-        padding-top: 1rem !important;
-        padding-bottom: 3rem !important;
+    #MainMenu, header, footer, [data-testid="stHeader"], [data-testid="stToolbar"], 
+    [data-testid="stDecoration"], [data-testid="stStatusWidget"], .stAppHeader,
+    div[class*="stAppHeader"], div[class*="ViewerBadge"] {
+        display: none !important;
+        visibility: hidden !important;
     }
+    
+    /* Responsive Main Container Padding */
+    .block-container {
+        padding-top: 1.5rem !important;
+        padding-bottom: 5rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        max-width: 100% !important;
+    }
+
+    /* Brand Header - Fluid & Responsive Typography */
     .brand-header {
         text-align: center;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
+        padding: 0 10px;
     }
+    
     .brand-title {
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: #F0F6FC;
+        /* Screen width ke hisab se font size smooth change hoga */
+        font-size: clamp(1.5rem, 5vw, 2.4rem) !important;
+        font-weight: 800 !important;
+        color: #F0F6FC !important;
         letter-spacing: -0.5px;
+        line-height: 1.25 !important;
+        word-wrap: break-word;
     }
+    
     .brand-subtitle {
         color: #8B949E;
-        font-size: 0.95rem;
-        margin-top: 4px;
+        font-size: clamp(0.85rem, 2.5vw, 1rem) !important;
+        margin-top: 6px;
+        line-height: 1.4;
     }
+
+    /* Responsive Cards Layout */
     .mode-card {
         background: #161B22;
         border: 1px solid #30363D;
         border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 15px;
+        padding: 16px;
+        margin-bottom: 12px;
+        height: 100%;
+        word-wrap: break-word;
     }
+    
     .mode-card h4 {
         color: #F0F6FC;
+        font-size: clamp(1rem, 3vw, 1.15rem);
         font-weight: 600;
         margin-top: 0;
+        margin-bottom: 8px;
     }
+    
     .mode-card p {
         color: #8B949E;
-        font-size: 0.9rem;
+        font-size: clamp(0.8rem, 2.5vw, 0.9rem);
         margin-bottom: 0;
+        line-height: 1.4;
     }
+
+    /* Responsive Buttons & Elements */
     .stButton>button {
         border-radius: 8px !important;
         background-color: #21262D !important;
@@ -81,12 +98,15 @@ st.markdown("""
         border: 1px solid #30363D !important;
         font-weight: 500 !important;
         transition: all 0.2s ease-in-out !important;
+        width: 100% !important;
     }
+    
     .stButton>button:hover {
         background-color: #30363D !important;
         border-color: #8B949E !important;
         color: #FFFFFF !important;
     }
+    
     .pro-badge {
         background-color: #238636;
         color: white;
@@ -95,9 +115,26 @@ st.markdown("""
         font-size: 0.8rem;
         font-weight: bold;
     }
+
+    /* Mobile Specific Overrides */
+    @media (max-width: 768px) {
+        .block-container {
+            padding-top: 0.8rem !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+        
+        /* Force two-column layout to wrap on mobile devices */
+        [data-testid="column"] {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+            min-width: 100% !important;
+            margin-bottom: 10px;
+        }
+    }
 </style>
 
-<!-- JavaScript Fallback to forcibly remove header if CSS fails -->
+<!-- JS Fallback for Header Cleanup -->
 <script>
     const removeHeader = () => {
         const headers = document.querySelectorAll('header, [data-testid="stHeader"], [data-testid="stToolbar"]');
@@ -208,7 +245,6 @@ def get_ai_response(messages_history, active_mode, roast_level, language):
                - Roast ONLY the specific details, skills, or claims mentioned.
             """
 
-        # ⚡ STRICT LANGUAGE RULE FIX FOR ROMAN URDU / HINDI
         if language in ["Roman Urdu", "Roman Hindi"]:
             lang_instruction = (
                 f"STRICT SYSTEM OVERRIDE: YOU MUST RESPOND EXCLUSIVELY IN {language}. "
@@ -274,15 +310,13 @@ current_chat = st.session_state.all_chats[current_id]
 # ==========================================
 with st.sidebar:
     st.markdown("<h3 style='font-weight:700;'>⚙️ Settings</h3>", unsafe_allow_html=True)
-    
     st.markdown("🟢 **Current Plan:** <span class='pro-badge' style='background-color:#1F6FEB;'>Free Mode</span>", unsafe_allow_html=True)
     
-    # Lemon Squeezy Monetization Box
     st.markdown("""
         <div style="background-color:#161B22; border:1px solid #30363D; border-radius:8px; padding:12px; margin:10px 0;">
             <p style="margin:0; font-size:0.85rem; color:#8B949E;">Want unlimited high-speed AI responses & priority servers?</p>
             <a href="https://ai-roaster.lemonsqueezy.com" target="_blank" style="text-decoration:none;">
-                <button style="width:100%; margin-top:8px; background-color:#238636; color:white; border:none; padding:6px; border-radius:6px; cursor:pointer; font-weight:bold;">
+                <button style="width:100%; margin-top:8px; background-color:#238636; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold;">
                     ⚡ Upgrade to Pro
                 </button>
             </a>
