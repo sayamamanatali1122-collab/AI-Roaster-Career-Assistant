@@ -20,13 +20,17 @@ st.set_page_config(
     initial_sidebar_state=INITIAL_SIDEBAR_STATE
 )
 
-# Professional CSS + Hide Streamlit Header, GitHub Icon & Footer
+# Professional CSS + 100% COMPLETE HIDE for Streamlit Header, GitHub Icon & Footer
 st.markdown("""
 <style>
-    /* GitHub Icon, Streamlit Header & Footer HIDE */
-    #MainMenu {visibility: hidden;}
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
+    /* ALL STREAMLIT HEADERS, FOOTERS & GITHUB ICONS COMPLETE HIDE */
+    #MainMenu {visibility: hidden !important;}
+    header {visibility: hidden !important;}
+    footer {visibility: hidden !important;}
+    [data-testid="stHeader"] {display: none !important;}
+    .stAppHeader {display: none !important;}
+    .st-emotion-cache-12fmwqi {display: none !important;}
+    [data-testid="stToolbar"] {display: none !important;}
 
     .block-container {
         padding-top: 1.8rem !important;
