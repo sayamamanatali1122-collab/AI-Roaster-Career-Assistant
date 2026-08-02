@@ -20,7 +20,7 @@ st.set_page_config(
     initial_sidebar_state=INITIAL_SIDEBAR_STATE
 )
 
-# Professional CSS for UI Fixes
+# Professional CSS for Chat Bar Buttons & UI Fixes
 st.markdown("""
 <style>
     .block-container {
@@ -86,9 +86,6 @@ st.markdown("""
 # ==========================================
 # 2. HELPER FUNCTIONS & AI ENGINE
 # ==========================================
-# ⚡ AAPKI WORKING GROQ API KEY YAHAN PASTE KAREIN
-DEFAULT_BACKUP_KEY = "gsk_AapKiNayiGroqKeyYahanLikhin"
-
 def read_pdf(uploaded_file):
     try:
         reader = PdfReader(uploaded_file)
@@ -103,6 +100,9 @@ def read_pdf(uploaded_file):
         return None
 
 def get_effective_api_key():
+    # ⚡ AAPKI WORKING GROQ KEY YAHAN AAYEGI:
+    MY_GROQ_KEY = "gsk_AapKiSahiNayiKeyYahanLikhin" 
+    
     try:
         if "GROQ_API_KEY" in st.secrets and st.secrets["GROQ_API_KEY"]:
             return st.secrets["GROQ_API_KEY"]
@@ -113,10 +113,7 @@ def get_effective_api_key():
     if env_key:
         return env_key
         
-    if DEFAULT_BACKUP_KEY and not DEFAULT_BACKUP_KEY.startswith("gsk_AapKiNayi"):
-        return DEFAULT_BACKUP_KEY
-        
-    return ""
+    return MY_GROQ_KEY
 
 def call_groq_with_fallback(client, messages, temperature=0.7, max_tokens=1500):
     try:
@@ -160,7 +157,7 @@ def get_ai_response(messages_history, active_mode, roast_level, language):
     effective_key = get_effective_api_key()
     
     if not effective_key:
-        return "⚠️ **Error:** API Key invalid or missing. Please generate a new key on Groq Console."
+        return "⚠️ **Error:** API Key missing."
 
     try:
         client = Groq(api_key=effective_key)
