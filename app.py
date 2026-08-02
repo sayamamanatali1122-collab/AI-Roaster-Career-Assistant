@@ -101,7 +101,7 @@ def read_pdf(uploaded_file):
 
 def get_effective_api_key():
     # ⚡ AAPKI WORKING GROQ KEY YAHAN AAYEGI:
-    MY_GROQ_KEY = "gsk_AapKiSahiNayiKeyYahanLikhin" 
+    MY_GROQ_KEY = ""
     
     try:
         if "GROQ_API_KEY" in st.secrets and st.secrets["GROQ_API_KEY"]:
