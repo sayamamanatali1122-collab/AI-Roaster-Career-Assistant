@@ -10,80 +10,68 @@ PAGE_ICON = "🤖"
 LAYOUT = "wide"
 
 # ==========================================
-# 1. SESSION STATE FOR SIDEBAR TOGGLE
-# ==========================================
-if "sidebar_state" not in st.session_state:
-    st.session_state.sidebar_state = "expanded"
-
-# ==========================================
-# 2. PAGE CONFIGURATION
+# 1. PAGE CONFIGURATION
 # ==========================================
 st.set_page_config(
     page_title=PAGE_TITLE,
     page_icon=PAGE_ICON,
     layout=LAYOUT,
-    initial_sidebar_state=st.session_state.sidebar_state
+    initial_sidebar_state="expanded"
 )
 
-# ⚡ CUSTOM STYLING WITH GUARANTEED TOGGLE BUTTON
+# ⚡ CLEAN MODERN STYLING (Sidebar Toggle Restored)
 st.markdown("""
 <style>
-    /* Force Global High Contrast Dark Mode */
-    html, body, [data-testid="stAppViewContainer"], .stApp {
+    /* Dark Theme Core */
+    .stApp, [data-testid="stAppViewContainer"] {
         background-color: #0D1117 !important;
         color: #C9D1D9 !important;
     }
 
+    /* Professional Dark Sidebar */
     [data-testid="stSidebar"] {
         background-color: #161B22 !important;
         border-right: 1px solid #30363D !important;
     }
 
-    /* Hide Unnecessary Streamlit Header & Footer elements */
-    #MainMenu, footer, [data-testid="stDecoration"], 
-    [data-testid="stStatusWidget"], div[class*="ViewerBadge"], [data-testid="stHeader"] {
-        display: none !important;
-    }
-
-    /* Floating Toggle Button Style */
-    .floating-toggle-btn button {
-        position: fixed !important;
-        top: 15px !important;
-        left: 15px !important;
-        z-index: 999999 !important;
+    /* Highlight Official Sidebar Collapse/Expand Button */
+    [data-testid="stSidebarCollapseButton"], 
+    [data-testid="stSidebarExpandButton"] {
         background-color: #21262D !important;
         color: #58A6FF !important;
         border: 1px solid #30363D !important;
-        border-radius: 8px !important;
-        padding: 4px 12px !important;
-        font-size: 1.2rem !important;
-        font-weight: bold !important;
-        cursor: pointer !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+        border-radius: 6px !important;
+        padding: 4px !important;
+        margin-top: 8px !important;
+        margin-left: 8px !important;
     }
 
-    .floating-toggle-btn button:hover {
-        background-color: #30363D !important;
-        border-color: #58A6FF !important;
-        color: #FFFFFF !important;
+    /* Hide Unwanted Header/Footer Elements without hiding Toggle Arrow */
+    #MainMenu, footer, [data-testid="stDecoration"], 
+    [data-testid="stStatusWidget"], div[class*="ViewerBadge"] {
+        display: none !important;
     }
 
-    /* Main Content Container Spacing */
+    [data-testid="stHeader"] {
+        background: transparent !important;
+    }
+
+    /* Layout Spacing */
     .block-container {
-        padding-top: 3.5rem !important;
+        padding-top: 2rem !important;
         padding-bottom: 6rem !important;
         max-width: 950px !important;
         margin: 0 auto;
     }
 
-    /* Form Labels High Contrast */
-    label, [data-testid="stWidgetLabel"], .stSelectbox label, .stRadio label {
+    /* High Contrast Text Labels */
+    label, [data-testid="stWidgetLabel"] {
         color: #F0F6FC !important;
         font-weight: 600 !important;
         font-size: 0.9rem !important;
     }
 
-    /* Main Section Header */
+    /* Header Styling */
     .brand-header {
         text-align: center;
         margin-bottom: 2rem;
@@ -93,7 +81,6 @@ st.markdown("""
         font-size: clamp(1.8rem, 4vw, 2.5rem) !important;
         font-weight: 800 !important;
         color: #FFFFFF !important;
-        letter-spacing: -0.5px;
     }
     
     .brand-subtitle {
@@ -102,7 +89,7 @@ st.markdown("""
         margin-top: 6px;
     }
 
-    /* Mode Cards */
+    /* Cards */
     .mode-card {
         background-color: #161B22 !important;
         border: 1px solid #30363D !important;
@@ -123,7 +110,6 @@ st.markdown("""
         color: #8B949E !important;
         font-size: 0.88rem !important;
         margin: 0;
-        line-height: 1.4;
     }
 
     /* Bottom Chat Input Fix */
@@ -132,40 +118,11 @@ st.markdown("""
         border: 1px solid #30363D !important;
         border-radius: 10px !important;
     }
-    
-    [data-testid="stChatInput"] textarea {
-        color: #FFFFFF !important;
-    }
-
-    /* Custom Scrollbars */
-    ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
-    ::-webkit-scrollbar-track {
-        background: #0D1117;
-    }
-    ::-webkit-scrollbar-thumb {
-        background: #30363D;
-        border-radius: 4px;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. FLOATING SIDEBAR TOGGLE BUTTON CONTROL
-# ==========================================
-st.markdown("<div class='floating-toggle-btn'>", unsafe_allow_html=True)
-if st.button("☰"):
-    if st.session_state.sidebar_state == "expanded":
-        st.session_state.sidebar_state = "collapsed"
-    else:
-        st.session_state.sidebar_state = "expanded"
-    st.rerun()
-st.markdown("</div>", unsafe_allow_html=True)
-
-# ==========================================
-# 4. HELPER FUNCTIONS & AI ENGINE
+# 2. HELPER FUNCTIONS & AI ENGINE
 # ==========================================
 def read_pdf(uploaded_file):
     try:
@@ -299,7 +256,7 @@ def get_ai_response(messages_history, active_mode, roast_level, language):
         return f"⚠️ **Error:** {str(e)}"
 
 # ==========================================
-# 5. SESSION MANAGEMENT
+# 3. SESSION MANAGEMENT
 # ==========================================
 if "all_chats" not in st.session_state:
     st.session_state.all_chats = {}
@@ -326,7 +283,7 @@ current_id = st.session_state.current_chat_id
 current_chat = st.session_state.all_chats[current_id]
 
 # ==========================================
-# 6. SIDEBAR CONTROLS
+# 4. SIDEBAR CONTROLS
 # ==========================================
 with st.sidebar:
     st.markdown("""
@@ -405,7 +362,7 @@ with st.sidebar:
             st.rerun()
 
 # ==========================================
-# 7. MAIN INTERFACE
+# 5. MAIN INTERFACE
 # ==========================================
 st.markdown("""
     <div class='brand-header'>
