@@ -20,9 +20,14 @@ st.set_page_config(
     initial_sidebar_state=INITIAL_SIDEBAR_STATE
 )
 
-# Professional CSS for Chat Bar Buttons & UI Fixes
+# Professional CSS + Hide Streamlit Header, GitHub Icon & Footer
 st.markdown("""
 <style>
+    /* GitHub Icon, Streamlit Header & Footer HIDE */
+    #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
+
     .block-container {
         padding-top: 1.8rem !important;
         padding-bottom: 3rem !important;
@@ -100,7 +105,6 @@ def read_pdf(uploaded_file):
         return None
 
 def get_effective_api_key():
-    # ⚡ AAPKI WORKING GROQ KEY YAHAN AAYEGI:
     MY_GROQ_KEY = ""
     
     try:
@@ -185,10 +189,13 @@ def get_ai_response(messages_history, active_mode, roast_level, language):
                - Roast ONLY the specific details, skills, or claims mentioned.
             """
 
+        # ⚡ STRICT LANGUAGE RULE FIX FOR ROMAN URDU / HINDI
         if language in ["Roman Urdu", "Roman Hindi"]:
             lang_instruction = (
-                f"STRICT LANGUAGE RULE: Respond STRICTLY in {language} using LATIN/ENGLISH ALPHABETS ONLY. "
-                f"NEVER use Urdu script (اردو) or Devanagari script (हिंदी)."
+                f"STRICT SYSTEM OVERRIDE: YOU MUST RESPOND EXCLUSIVELY IN {language}. "
+                f"USE ENGLISH/LATIN ALPHABETS ONLY (e.g., 'Aap kaise hain', 'Main aap ki resume ko roast karunga'). "
+                f"DO NOT RESPOND IN FULL ENGLISH SENTENCES. EVERY SINGLE SENTENCE MUST BE IN ROMAN URDU/HINDI. "
+                f"NEVER use Urdu script (اردو) or Hindi script (हिंदी)."
             )
         else:
             lang_instruction = (
