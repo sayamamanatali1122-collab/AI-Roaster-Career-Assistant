@@ -345,6 +345,20 @@ with st.sidebar:
                 else:
                     st.warning("Please enter a valid key.")
 
+    # Developer Access Section
+    with st.expander("🛠️ Developer Access"):
+        entered_key = st.text_input("Enter Secret Key", type="password")
+        if st.button("Activate Dev Pro"):
+            try:
+                if entered_key == st.secrets["DEV_SECRET_KEY"]:
+                    st.session_state.is_pro = True
+                    st.success("Pro mode activated for Developer!")
+                    st.rerun()
+                else:
+                    st.error("Invalid Secret Key!")
+            except Exception:
+                st.error("DEV_SECRET_KEY not found in secrets!")
+
     language = st.selectbox(
         "Response Language:",
         [
