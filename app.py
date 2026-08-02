@@ -20,7 +20,7 @@ st.set_page_config(
     initial_sidebar_state=INITIAL_SIDEBAR_STATE
 )
 
-# Professional CSS for Chat Bar Buttons & UI Fixes
+# Professional CSS for UI Fixes
 st.markdown("""
 <style>
     .block-container {
@@ -80,48 +80,15 @@ st.markdown("""
         font-size: 0.8rem;
         font-weight: bold;
     }
-    [data-testid="stChatInput"] button {
-        background-color: #21262D !important;
-        border: 1px solid #30363D !important;
-        border-radius: 50% !important;
-        width: 34px !important;
-        height: 34px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        padding: 0 !important;
-        margin: 0 4px !important;
-        transition: all 0.2s ease-in-out !important;
-        box-shadow: none !important;
-    }
-    [data-testid="stChatInput"] button:hover {
-        background-color: #3B82F6 !important;
-        border-color: #3B82F6 !important;
-        cursor: pointer !important;
-    }
-    [data-testid="stChatInput"] button svg {
-        fill: #FFFFFF !important;
-        color: #FFFFFF !important;
-        stroke: #FFFFFF !important;
-        width: 18px !important;
-        height: 18px !important;
-    }
-    [data-testid="stChatInput"] [data-testid="stChatInputFileUploadButton"],
-    [data-testid="stChatInput"] [aria-label="Attach files"] {
-        border-radius: 50% !important;
-        background-color: #21262D !important;
-        border: 1px solid #30363D !important;
-    }
-    [data-testid="stChatInput"] [data-testid="stChatInputFileUploadButton"]:hover {
-        background-color: #30363D !important;
-        border-color: #8B949E !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
 # 2. HELPER FUNCTIONS & AI ENGINE
 # ==========================================
+# ⚡ AAPKI WORKING GROQ API KEY YAHAN PASTE KAREIN
+DEFAULT_BACKUP_KEY = "gsk_AapKiNayiGroqKeyYahanLikhin"
+
 def read_pdf(uploaded_file):
     try:
         reader = PdfReader(uploaded_file)
@@ -135,22 +102,21 @@ def read_pdf(uploaded_file):
         st.error(f"Error reading PDF: {e}")
         return None
 
-def get_effective_api_key(manual_key):
-    """Fallback mechanism: User Key -> Streamlit Secrets Key -> Environment Key"""
-    if manual_key and manual_key.strip():
-        return manual_key.strip(), "Pro (User Key)"
-    
+def get_effective_api_key():
     try:
         if "GROQ_API_KEY" in st.secrets and st.secrets["GROQ_API_KEY"]:
-            return st.secrets["GROQ_API_KEY"], "Free Tier"
+            return st.secrets["GROQ_API_KEY"]
     except Exception:
         pass
         
     env_key = os.environ.get("GROQ_API_KEY", "")
     if env_key:
-        return env_key, "Free Tier"
+        return env_key
         
-    return "", "No Key Found"
+    if DEFAULT_BACKUP_KEY and not DEFAULT_BACKUP_KEY.startswith("gsk_AapKiNayi"):
+        return DEFAULT_BACKUP_KEY
+        
+    return ""
 
 def call_groq_with_fallback(client, messages, temperature=0.7, max_tokens=1500):
     try:
@@ -171,8 +137,8 @@ def call_groq_with_fallback(client, messages, temperature=0.7, max_tokens=1500):
             )
         raise e
 
-def generate_chat_title(first_user_msg, api_key):
-    effective_key, _ = get_effective_api_key(api_key)
+def generate_chat_title(first_user_msg):
+    effective_key = get_effective_api_key()
     if not effective_key:
         return "New Chat"
     try:
@@ -190,11 +156,11 @@ def generate_chat_title(first_user_msg, api_key):
         cleaned = first_user_msg.strip().split("\n")[0]
         return cleaned[:22] + "..." if len(cleaned) > 22 else cleaned
 
-def get_ai_response(messages_history, active_mode, roast_level, language, api_key):
-    effective_key, tier_mode = get_effective_api_key(api_key)
+def get_ai_response(messages_history, active_mode, roast_level, language):
+    effective_key = get_effective_api_key()
     
     if not effective_key:
-        return "⚠️ **Error:** No API Key configured by server or user. Please set GROQ_API_KEY in Secrets."
+        return "⚠️ **Error:** API Key invalid or missing. Please generate a new key on Groq Console."
 
     try:
         client = Groq(api_key=effective_key)
@@ -286,11 +252,7 @@ current_chat = st.session_state.all_chats[current_id]
 with st.sidebar:
     st.markdown("<h3 style='font-weight:700;'>⚙️ Settings</h3>", unsafe_allow_html=True)
     
-    # Check current tier status
-    _, active_tier = get_effective_api_key("")
-    
-    if active_tier == "Free Tier":
-        st.markdown("🟢 **Current Plan:** <span class='pro-badge' style='background-color:#1F6FEB;'>Free Mode</span>", unsafe_allow_html=True)
+    st.markdown("🟢 **Current Plan:** <span class='pro-badge' style='background-color:#1F6FEB;'>Free Mode</span>", unsafe_allow_html=True)
     
     # Lemon Squeezy Monetization Box
     st.markdown("""
@@ -303,12 +265,6 @@ with st.sidebar:
             </a>
         </div>
     """, unsafe_allow_html=True)
-
-    user_api_key = st.text_input(
-        "Custom / Pro API Key (Optional):", 
-        type="password", 
-        placeholder="gsk_..."
-    )
 
     language = st.selectbox(
         "Response Language:",
@@ -433,7 +389,7 @@ if chat_input_data:
     # Auto-generate Title for New Chat Session
     if not current_chat["messages"] or current_chat["title"] == "New Chat":
         sample_text = prompt_text if prompt_text else (uploaded_files[0].name if uploaded_files else "Conversation")
-        generated_title = generate_chat_title(sample_text, user_api_key)
+        generated_title = generate_chat_title(sample_text)
         current_chat["title"] = generated_title
 
     st.chat_message("user").markdown(user_display_msg)
@@ -445,8 +401,7 @@ if chat_input_data:
                 current_chat["messages"],
                 active_mode,
                 roast_level,
-                language,
-                user_api_key
+                language
             )
             st.markdown(response)
             current_chat["messages"].append({"role": "assistant", "content": response})
