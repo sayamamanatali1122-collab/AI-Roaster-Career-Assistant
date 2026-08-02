@@ -20,41 +20,60 @@ st.set_page_config(
     initial_sidebar_state=INITIAL_SIDEBAR_STATE
 )
 
-# ⚡ PROFESSIONAL MODERN SAAS STYLING (DARK MODE)
+# ⚡ ULTIMATE FIXED DARK THEME & TOGGLE BUTTON RESTORED
 st.markdown("""
 <style>
-    /* Global App Container */
-    .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+    /* Force Dark Background Globally */
+    .stApp, [data-testid="stAppViewContainer"] {
         background-color: #0D1117 !important;
         color: #C9D1D9 !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     
-    /* Professional Sidebar Styling */
+    /* Professional Dark Sidebar */
     [data-testid="stSidebar"] {
         background-color: #161B22 !important;
         border-right: 1px solid #30363D !important;
     }
 
-    /* Hide Default Header Elements */
-    #MainMenu, header, footer, [data-testid="stHeader"], [data-testid="stToolbar"], 
-    [data-testid="stDecoration"], [data-testid="stStatusWidget"], .stAppHeader,
-    div[class*="stAppHeader"], div[class*="ViewerBadge"] {
+    /* Keep Sidebar Toggle Arrow Button Visible & Styled! */
+    [data-testid="stSidebarCollapseButton"], 
+    [data-testid="stSidebarExpandButton"], 
+    button[aria-label="Toggle sidebar"],
+    button[title="Expand sidebar"],
+    button[title="Collapse sidebar"] {
+        display: flex !important;
+        visibility: visible !important;
+        color: #FFFFFF !important;
+        background-color: #21262D !important;
+        border: 1px solid #30363D !important;
+        border-radius: 8px !important;
+        z-index: 999999 !important;
+    }
+
+    /* Hide Unwanted Header Junk (GitHub link, Status, Footer) but Keep Toggle Button */
+    #MainMenu, footer, [data-testid="stDecoration"], [data-testid="stStatusWidget"], 
+    div[class*="ViewerBadge"], .stAppHeader {
         display: none !important;
-        visibility: hidden !important;
     }
     
-    /* Main Layout Margins */
+    /* Transparent stHeader so only toggle button is visible */
+    [data-testid="stHeader"] {
+        background-color: transparent !important;
+        z-index: 9999 !important;
+    }
+
+    /* Main Container Spacing */
     .block-container {
         padding-top: 2rem !important;
-        padding-bottom: 5rem !important;
+        padding-bottom: 6rem !important;
         padding-left: 2rem !important;
         padding-right: 2rem !important;
         max-width: 1000px !important;
         margin: 0 auto;
     }
 
-    /* Professional Sidebar Header */
+    /* Sidebar Brand Header */
     .sidebar-brand {
         display: flex;
         align-items: center;
@@ -70,10 +89,10 @@ st.markdown("""
         margin: 0 !important;
     }
 
-    /* Main Section Header */
+    /* Main Section Title */
     .brand-header {
         text-align: center;
-        margin-bottom: 2.5rem;
+        margin-bottom: 2rem;
     }
     
     .brand-title {
@@ -90,7 +109,7 @@ st.markdown("""
         margin-top: 8px;
     }
 
-    /* Modern Glass Cards */
+    /* Mode Cards Dark Style */
     .mode-card {
         background-color: #161B22 !important;
         border: 1px solid #30363D !important;
@@ -98,11 +117,10 @@ st.markdown("""
         padding: 18px 20px;
         margin-bottom: 15px;
         height: 100%;
-        transition: transform 0.2s ease, border-color 0.2s ease;
+        transition: border-color 0.2s ease;
     }
     .mode-card:hover {
         border-color: #58A6FF !important;
-        transform: translateY(-2px);
     }
     .mode-card h4 {
         color: #F0F6FC !important;
@@ -118,7 +136,7 @@ st.markdown("""
         line-height: 1.45;
     }
 
-    /* UI Badges */
+    /* Badges & Buttons */
     .pro-badge {
         background-color: #1F6FEB;
         color: #FFFFFF;
@@ -128,7 +146,6 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* Stylish Buttons */
     .stButton>button {
         border-radius: 8px !important;
         background-color: #21262D !important;
@@ -143,7 +160,14 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* Mobile Friendly Tweaks */
+    /* Fix Input Box Color in Dark Mode */
+    [data-testid="stChatInput"] {
+        background-color: #161B22 !important;
+        border: 1px solid #30363D !important;
+        border-radius: 10px !important;
+    }
+
+    /* Mobile Responsive Tweaks */
     @media (max-width: 768px) {
         .block-container {
             padding-left: 1rem !important;
@@ -157,14 +181,6 @@ st.markdown("""
         }
     }
 </style>
-
-<script>
-    const removeHeader = () => {
-        const headers = document.querySelectorAll('header, [data-testid="stHeader"], [data-testid="stToolbar"]');
-        headers.forEach(h => h.remove());
-    };
-    setInterval(removeHeader, 300);
-</script>
 """, unsafe_allow_html=True)
 
 # ==========================================
