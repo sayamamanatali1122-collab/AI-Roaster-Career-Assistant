@@ -8,183 +8,164 @@ from groq import Groq
 PAGE_TITLE = "AI Roaster & Career Assistant"
 PAGE_ICON = "🤖"
 LAYOUT = "wide"
-INITIAL_SIDEBAR_STATE = "expanded"
 
 # ==========================================
-# 1. PAGE CONFIGURATION
+# 1. SESSION STATE FOR SIDEBAR TOGGLE
+# ==========================================
+if "sidebar_state" not in st.session_state:
+    st.session_state.sidebar_state = "expanded"
+
+# ==========================================
+# 2. PAGE CONFIGURATION
 # ==========================================
 st.set_page_config(
     page_title=PAGE_TITLE,
     page_icon=PAGE_ICON,
     layout=LAYOUT,
-    initial_sidebar_state=INITIAL_SIDEBAR_STATE
+    initial_sidebar_state=st.session_state.sidebar_state
 )
 
-# ⚡ ULTIMATE FIXED DARK THEME & TOGGLE BUTTON RESTORED
+# ⚡ CUSTOM STYLING WITH GUARANTEED TOGGLE BUTTON
 st.markdown("""
 <style>
-    /* Force Dark Background Globally */
-    .stApp, [data-testid="stAppViewContainer"] {
+    /* Force Global High Contrast Dark Mode */
+    html, body, [data-testid="stAppViewContainer"], .stApp {
         background-color: #0D1117 !important;
         color: #C9D1D9 !important;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
-    
-    /* Professional Dark Sidebar */
+
     [data-testid="stSidebar"] {
         background-color: #161B22 !important;
         border-right: 1px solid #30363D !important;
     }
 
-    /* Keep Sidebar Toggle Arrow Button Visible & Styled! */
-    [data-testid="stSidebarCollapseButton"], 
-    [data-testid="stSidebarExpandButton"], 
-    button[aria-label="Toggle sidebar"],
-    button[title="Expand sidebar"],
-    button[title="Collapse sidebar"] {
-        display: flex !important;
-        visibility: visible !important;
-        color: #FFFFFF !important;
-        background-color: #21262D !important;
-        border: 1px solid #30363D !important;
-        border-radius: 8px !important;
-        z-index: 999999 !important;
-    }
-
-    /* Hide Unwanted Header Junk (GitHub link, Status, Footer) but Keep Toggle Button */
-    #MainMenu, footer, [data-testid="stDecoration"], [data-testid="stStatusWidget"], 
-    div[class*="ViewerBadge"], .stAppHeader {
+    /* Hide Unnecessary Streamlit Header & Footer elements */
+    #MainMenu, footer, [data-testid="stDecoration"], 
+    [data-testid="stStatusWidget"], div[class*="ViewerBadge"], [data-testid="stHeader"] {
         display: none !important;
     }
-    
-    /* Transparent stHeader so only toggle button is visible */
-    [data-testid="stHeader"] {
-        background-color: transparent !important;
-        z-index: 9999 !important;
+
+    /* Floating Toggle Button Style */
+    .floating-toggle-btn button {
+        position: fixed !important;
+        top: 15px !important;
+        left: 15px !important;
+        z-index: 999999 !important;
+        background-color: #21262D !important;
+        color: #58A6FF !important;
+        border: 1px solid #30363D !important;
+        border-radius: 8px !important;
+        padding: 4px 12px !important;
+        font-size: 1.2rem !important;
+        font-weight: bold !important;
+        cursor: pointer !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
     }
 
-    /* Main Container Spacing */
+    .floating-toggle-btn button:hover {
+        background-color: #30363D !important;
+        border-color: #58A6FF !important;
+        color: #FFFFFF !important;
+    }
+
+    /* Main Content Container Spacing */
     .block-container {
-        padding-top: 2rem !important;
+        padding-top: 3.5rem !important;
         padding-bottom: 6rem !important;
-        padding-left: 2rem !important;
-        padding-right: 2rem !important;
-        max-width: 1000px !important;
+        max-width: 950px !important;
         margin: 0 auto;
     }
 
-    /* Sidebar Brand Header */
-    .sidebar-brand {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid #30363D;
-        margin-bottom: 15px;
-    }
-    .sidebar-brand h2 {
-        font-size: 1.15rem !important;
-        font-weight: 700 !important;
+    /* Form Labels High Contrast */
+    label, [data-testid="stWidgetLabel"], .stSelectbox label, .stRadio label {
         color: #F0F6FC !important;
-        margin: 0 !important;
+        font-weight: 600 !important;
+        font-size: 0.9rem !important;
     }
 
-    /* Main Section Title */
+    /* Main Section Header */
     .brand-header {
         text-align: center;
         margin-bottom: 2rem;
     }
     
     .brand-title {
-        font-size: clamp(1.8rem, 4vw, 2.6rem) !important;
+        font-size: clamp(1.8rem, 4vw, 2.5rem) !important;
         font-weight: 800 !important;
         color: #FFFFFF !important;
         letter-spacing: -0.5px;
-        line-height: 1.2 !important;
     }
     
     .brand-subtitle {
         color: #8B949E !important;
-        font-size: clamp(0.9rem, 2vw, 1.05rem) !important;
-        margin-top: 8px;
+        font-size: 1rem !important;
+        margin-top: 6px;
     }
 
-    /* Mode Cards Dark Style */
+    /* Mode Cards */
     .mode-card {
         background-color: #161B22 !important;
         border: 1px solid #30363D !important;
         border-radius: 10px;
-        padding: 18px 20px;
-        margin-bottom: 15px;
+        padding: 18px;
+        margin-bottom: 12px;
         height: 100%;
-        transition: border-color 0.2s ease;
     }
-    .mode-card:hover {
-        border-color: #58A6FF !important;
-    }
+    
     .mode-card h4 {
-        color: #F0F6FC !important;
+        color: #FFFFFF !important;
         font-size: 1.05rem !important;
-        font-weight: 600;
-        margin-top: 0;
-        margin-bottom: 6px;
+        font-weight: 700;
+        margin: 0 0 6px 0;
     }
+    
     .mode-card p {
         color: #8B949E !important;
         font-size: 0.88rem !important;
-        margin-bottom: 0;
-        line-height: 1.45;
+        margin: 0;
+        line-height: 1.4;
     }
 
-    /* Badges & Buttons */
-    .pro-badge {
-        background-color: #1F6FEB;
-        color: #FFFFFF;
-        padding: 3px 8px;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    .stButton>button {
-        border-radius: 8px !important;
-        background-color: #21262D !important;
-        color: #C9D1D9 !important;
-        border: 1px solid #30363D !important;
-        font-weight: 500 !important;
-        transition: all 0.2s ease !important;
-    }
-    .stButton>button:hover {
-        background-color: #30363D !important;
-        border-color: #8B949E !important;
-        color: #FFFFFF !important;
-    }
-
-    /* Fix Input Box Color in Dark Mode */
+    /* Bottom Chat Input Fix */
     [data-testid="stChatInput"] {
         background-color: #161B22 !important;
         border: 1px solid #30363D !important;
         border-radius: 10px !important;
     }
+    
+    [data-testid="stChatInput"] textarea {
+        color: #FFFFFF !important;
+    }
 
-    /* Mobile Responsive Tweaks */
-    @media (max-width: 768px) {
-        .block-container {
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-            padding-top: 1rem !important;
-        }
-        [data-testid="column"] {
-            width: 100% !important;
-            flex: 1 1 100% !important;
-            margin-bottom: 10px;
-        }
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #0D1117;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #30363D;
+        border-radius: 4px;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 2. HELPER FUNCTIONS & AI ENGINE
+# 3. FLOATING SIDEBAR TOGGLE BUTTON CONTROL
+# ==========================================
+st.markdown("<div class='floating-toggle-btn'>", unsafe_allow_html=True)
+if st.button("☰"):
+    if st.session_state.sidebar_state == "expanded":
+        st.session_state.sidebar_state = "collapsed"
+    else:
+        st.session_state.sidebar_state = "expanded"
+    st.rerun()
+st.markdown("</div>", unsafe_allow_html=True)
+
+# ==========================================
+# 4. HELPER FUNCTIONS & AI ENGINE
 # ==========================================
 def read_pdf(uploaded_file):
     try:
@@ -318,7 +299,7 @@ def get_ai_response(messages_history, active_mode, roast_level, language):
         return f"⚠️ **Error:** {str(e)}"
 
 # ==========================================
-# 3. SESSION MANAGEMENT
+# 5. SESSION MANAGEMENT
 # ==========================================
 if "all_chats" not in st.session_state:
     st.session_state.all_chats = {}
@@ -345,23 +326,23 @@ current_id = st.session_state.current_chat_id
 current_chat = st.session_state.all_chats[current_id]
 
 # ==========================================
-# 4. SIDEBAR CONTROLS & MONETIZATION
+# 6. SIDEBAR CONTROLS
 # ==========================================
 with st.sidebar:
     st.markdown("""
-        <div class='sidebar-brand'>
-            <span style='font-size:1.5rem;'>🤖</span>
-            <h2>AI Assistant</h2>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; border-bottom:1px solid #30363D; padding-bottom:10px;">
+            <span style="font-size:1.5rem;">🤖</span>
+            <h3 style="margin:0; color:#FFFFFF; font-size:1.15rem;">AI Assistant</h3>
         </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("🟢 **Status:** <span class='pro-badge'>Free Plan</span>", unsafe_allow_html=True)
+    st.markdown("🟢 **Status:** <span style='background:#1F6FEB; color:#FFF; padding:2px 8px; border-radius:10px; font-size:0.75rem;'>Free Plan</span>", unsafe_allow_html=True)
     
     st.markdown("""
-        <div style="background-color:#0D1117; border:1px solid #30363D; border-radius:8px; padding:12px; margin:12px 0;">
-            <p style="margin:0; font-size:0.8rem; color:#8B949E; line-height:1.3;">Upgrade for unlimited speed & priority AI models.</p>
+        <div style="background-color:#0D1117; border:1px solid #30363D; border-radius:8px; padding:10px; margin:10px 0;">
+            <p style="margin:0; font-size:0.8rem; color:#8B949E;">Upgrade for unlimited speed & priority AI models.</p>
             <a href="https://ai-roaster.lemonsqueezy.com" target="_blank" style="text-decoration:none;">
-                <button style="width:100%; margin-top:8px; background-color:#238636; color:white; border:none; padding:7px; border-radius:6px; cursor:pointer; font-weight:600; font-size:0.85rem;">
+                <button style="width:100%; margin-top:8px; background-color:#238636; color:white; border:none; padding:6px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.85rem;">
                     ⚡ Upgrade to Pro
                 </button>
             </a>
@@ -369,7 +350,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     language = st.selectbox(
-        "🌐 Response Language:",
+        "Response Language:",
         [
             "Roman Urdu", 
             "Roman Hindi", 
@@ -387,21 +368,17 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown("<p style='color:#8B949E; font-size:0.85rem; font-weight:600; margin-bottom:8px;'>AI MODE</p>", unsafe_allow_html=True)
     active_mode = st.radio(
-        "Select Mode:",
-        ["🔥 Savage Roast Mode", "🧠 Thinking & Career Assistant"],
-        label_visibility="collapsed"
+        "AI MODE:",
+        ["🔥 Savage Roast Mode", "🧠 Thinking & Career Assistant"]
     )
 
     roast_level = "Medium"
     if active_mode == "🔥 Savage Roast Mode":
-        st.markdown("<p style='color:#8B949E; font-size:0.85rem; font-weight:600; margin-top:12px; margin-bottom:4px;'>ROAST INTENSITY</p>", unsafe_allow_html=True)
         roast_level = st.select_slider(
-            "Level:",
+            "ROAST INTENSITY:",
             options=["Normal", "Medium", "Hard"],
-            value="Medium",
-            label_visibility="collapsed"
+            value="Medium"
         )
 
     st.markdown("---")
@@ -410,7 +387,7 @@ with st.sidebar:
         start_new_chat()
         st.rerun()
 
-    st.markdown("<p style='margin-top: 15px; color:#8B949E; font-size:0.85rem; font-weight:600;'>RECENT CHATS</p>", unsafe_allow_html=True)
+    st.markdown("<p style='margin-top:10px; color:#8B949E; font-size:0.8rem; font-weight:600;'>RECENT CHATS</p>", unsafe_allow_html=True)
     
     for c_id in list(st.session_state.all_chats.keys())[::-1]:
         chat_info = st.session_state.all_chats[c_id]
@@ -428,7 +405,7 @@ with st.sidebar:
             st.rerun()
 
 # ==========================================
-# 5. MAIN INTERFACE
+# 7. MAIN INTERFACE
 # ==========================================
 st.markdown("""
     <div class='brand-header'>
