@@ -1,4 +1,4 @@
-﻿import os
+import os
 import datetime
 import streamlit as st
 from pypdf import PdfReader
@@ -72,6 +72,14 @@ st.markdown("""
         border-color: #8B949E !important;
         color: #FFFFFF !important;
     }
+    .pro-badge {
+        background-color: #238636;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
     [data-testid="stChatInput"] button {
         background-color: #21262D !important;
         border: 1px solid #30363D !important;
@@ -128,18 +136,23 @@ def read_pdf(uploaded_file):
         return None
 
 def get_effective_api_key(manual_key):
-    """Safely retrieves API Key without crashing if secrets.toml is missing."""
+    """Fallback mechanism: User Key -> Streamlit Secrets Key -> Environment Key"""
     if manual_key and manual_key.strip():
-        return manual_key.strip()
+        return manual_key.strip(), "Pro (User Key)"
+    
     try:
-        if "GROQ_API_KEY" in st.secrets:
-            return st.secrets["GROQ_API_KEY"]
+        if "GROQ_API_KEY" in st.secrets and st.secrets["GROQ_API_KEY"]:
+            return st.secrets["GROQ_API_KEY"], "Free Tier"
     except Exception:
         pass
-    return os.environ.get("GROQ_API_KEY", "")
+        
+    env_key = os.environ.get("GROQ_API_KEY", "")
+    if env_key:
+        return env_key, "Free Tier"
+        
+    return "", "No Key Found"
 
 def call_groq_with_fallback(client, messages, temperature=0.7, max_tokens=1500):
-    """Primary model (70B) calls attempt karta hai, Rate Limit (429) aane par Fallback (8B) run karta hai."""
     try:
         return client.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -150,7 +163,6 @@ def call_groq_with_fallback(client, messages, temperature=0.7, max_tokens=1500):
     except Exception as e:
         error_msg = str(e).lower()
         if "429" in error_msg or "rate_limit" in error_msg or "tokens" in error_msg:
-            # Automatic Fallback to 8B Instant model
             return client.chat.completions.create(
                 model="llama-3.1-8b-instant",
                 messages=messages,
@@ -160,7 +172,7 @@ def call_groq_with_fallback(client, messages, temperature=0.7, max_tokens=1500):
         raise e
 
 def generate_chat_title(first_user_msg, api_key):
-    effective_key = get_effective_api_key(api_key)
+    effective_key, _ = get_effective_api_key(api_key)
     if not effective_key:
         return "New Chat"
     try:
@@ -179,22 +191,22 @@ def generate_chat_title(first_user_msg, api_key):
         return cleaned[:22] + "..." if len(cleaned) > 22 else cleaned
 
 def get_ai_response(messages_history, active_mode, roast_level, language, api_key):
-    effective_key = get_effective_api_key(api_key)
+    effective_key, tier_mode = get_effective_api_key(api_key)
+    
     if not effective_key:
-        return "⚠️ **Error:** Please enter a valid Groq API Key in the sidebar or setup `.streamlit/secrets.toml`."
+        return "⚠️ **Error:** No API Key configured by server or user. Please set GROQ_API_KEY in Secrets."
 
     try:
         client = Groq(api_key=effective_key)
 
-        # Mode Specific Prompt Customization
         if active_mode == "🧠 Thinking & Career Assistant":
-            persona_instructions = f"""
+            persona_instructions = """
             YOU ARE A PROFESSIONAL CAREER ASSISTANT & ATS EXPERT.
             - Tone: Highly professional, encouraging, objective, polite, and constructive.
             - DO NOT roast, insult, joke, or humiliate the user.
             - Provide clear, actionable career advice, resume/ATS optimization tips, and professional feedback.
             """
-        else:  # 🔥 Savage Roast Mode
+        else:
             persona_instructions = f"""
             YOU ARE A SARCASTIC AND WITTY AI ROASTER WHO RESPONDS DYNAMICALLY TO WHAT THE USER ACTUALLY SAYS.
             - Roast Level: {roast_level}
@@ -202,20 +214,18 @@ def get_ai_response(messages_history, active_mode, roast_level, language, api_ke
 
             SMART CONTEXT-AWARE RULES:
             1. IF USER SAYS SIMPLE GREETINGS (e.g., 'Hello', 'Hi', 'Hey', 'Kya haal hai'):
-               - Do NOT give a massive pre-scripted roast about 2050 graduation or fake assets!
-               - Reply with a witty, sarcastic welcome. (e.g., "Aha! Aaye ho roast hone? Koi resume bhejo ya apna koi aisa project batao jis par tumhein bohot ghamand ho, phir uski dhajjiya udata hoon!")
+               - Do NOT give a massive pre-scripted roast!
+               - Reply with a witty, sarcastic welcome.
 
             2. IF USER SHARES A SPECIFIC TOPIC, STATEMENT, OR RESUME:
                - Read their specific text or resume carefully.
-               - Roast ONLY the specific details, skills, or claims mentioned in their message. 
-               - Do NOT use generic recycled lines.
+               - Roast ONLY the specific details, skills, or claims mentioned.
             """
 
-        # Advanced Multi-Language Handling
         if language in ["Roman Urdu", "Roman Hindi"]:
             lang_instruction = (
-                f"STRICT LANGUAGE RULE: Respond STRICTLY in {language} using LATIN/ENGLISH ALPHABETS ONLY "
-                f"(e.g., 'Kaise ho aap? Aaj kya plans hain?'). NEVER use Urdu script (اردو) or Devanagari script (हिंदी)."
+                f"STRICT LANGUAGE RULE: Respond STRICTLY in {language} using LATIN/ENGLISH ALPHABETS ONLY. "
+                f"NEVER use Urdu script (اردو) or Devanagari script (हिंदी)."
             )
         else:
             lang_instruction = (
@@ -271,20 +281,31 @@ current_id = st.session_state.current_chat_id
 current_chat = st.session_state.all_chats[current_id]
 
 # ==========================================
-# 4. SIDEBAR CONTROLS
+# 4. SIDEBAR CONTROLS & MONETIZATION
 # ==========================================
 with st.sidebar:
     st.markdown("<h3 style='font-weight:700;'>⚙️ Settings</h3>", unsafe_allow_html=True)
     
-    saved_key = ""
-    try:
-        saved_key = st.secrets.get("GROQ_API_KEY", "")
-    except Exception:
-        pass
+    # Check current tier status
+    _, active_tier = get_effective_api_key("")
+    
+    if active_tier == "Free Tier":
+        st.markdown("🟢 **Current Plan:** <span class='pro-badge' style='background-color:#1F6FEB;'>Free Mode</span>", unsafe_allow_html=True)
+    
+    # Lemon Squeezy Monetization Box
+    st.markdown("""
+        <div style="background-color:#161B22; border:1px solid #30363D; border-radius:8px; padding:12px; margin:10px 0;">
+            <p style="margin:0; font-size:0.85rem; color:#8B949E;">Want unlimited high-speed AI responses & priority servers?</p>
+            <a href="https://ai-roaster.lemonsqueezy.com" target="_blank" style="text-decoration:none;">
+                <button style="width:100%; margin-top:8px; background-color:#238636; color:white; border:none; padding:6px; border-radius:6px; cursor:pointer; font-weight:bold;">
+                    ⚡ Upgrade to Pro
+                </button>
+            </a>
+        </div>
+    """, unsafe_allow_html=True)
 
     user_api_key = st.text_input(
-        "Groq API Key:", 
-        value=saved_key, 
+        "Custom / Pro API Key (Optional):", 
         type="password", 
         placeholder="gsk_..."
     )
