@@ -20,9 +20,20 @@ st.set_page_config(
     initial_sidebar_state=INITIAL_SIDEBAR_STATE
 )
 
-# ⚡ RESPONSIVE CSS & DOM CLEANUP
+# ⚡ ULTIMATE DARK THEME & RESPONSIVE FIX
 st.markdown("""
 <style>
+    /* Force Dark Background across all elements */
+    .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+        background-color: #0D1117 !important;
+        color: #C9D1D9 !important;
+    }
+    
+    [data-testid="stSidebar"] {
+        background-color: #161B22 !important;
+        border-right: 1px solid #30363D !important;
+    }
+
     /* Complete DOM Hiding via CSS */
     #MainMenu, header, footer, [data-testid="stHeader"], [data-testid="stToolbar"], 
     [data-testid="stDecoration"], [data-testid="stStatusWidget"], .stAppHeader,
@@ -31,66 +42,63 @@ st.markdown("""
         visibility: hidden !important;
     }
     
-    /* Responsive Main Container Padding */
+    /* Dynamic Layout Spacing */
     .block-container {
         padding-top: 1.5rem !important;
         padding-bottom: 5rem !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
         max-width: 100% !important;
     }
 
-    /* Brand Header - Fluid & Responsive Typography */
+    /* Brand Header - High Contrast & Scalable Text */
     .brand-header {
         text-align: center;
-        margin-bottom: 1.5rem;
+        margin-bottom: 2rem;
         padding: 0 10px;
     }
     
     .brand-title {
-        /* Screen width ke hisab se font size smooth change hoga */
-        font-size: clamp(1.5rem, 5vw, 2.4rem) !important;
+        font-size: clamp(1.6rem, 4vw, 2.5rem) !important;
         font-weight: 800 !important;
-        color: #F0F6FC !important;
+        color: #FFFFFF !important;
         letter-spacing: -0.5px;
         line-height: 1.25 !important;
-        word-wrap: break-word;
     }
     
     .brand-subtitle {
-        color: #8B949E;
-        font-size: clamp(0.85rem, 2.5vw, 1rem) !important;
+        color: #8B949E !important;
+        font-size: clamp(0.85rem, 2vw, 1rem) !important;
         margin-top: 6px;
-        line-height: 1.4;
     }
 
-    /* Responsive Cards Layout */
+    /* Mode Cards with Solid Dark Background */
     .mode-card {
-        background: #161B22;
-        border: 1px solid #30363D;
+        background-color: #161B22 !important;
+        border: 1px solid #30363D !important;
         border-radius: 12px;
-        padding: 16px;
-        margin-bottom: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
         height: 100%;
-        word-wrap: break-word;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     
     .mode-card h4 {
-        color: #F0F6FC;
-        font-size: clamp(1rem, 3vw, 1.15rem);
+        color: #F0F6FC !important;
+        font-size: 1.1rem !important;
         font-weight: 600;
         margin-top: 0;
         margin-bottom: 8px;
     }
     
     .mode-card p {
-        color: #8B949E;
-        font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+        color: #8B949E !important;
+        font-size: 0.9rem !important;
         margin-bottom: 0;
         line-height: 1.4;
     }
 
-    /* Responsive Buttons & Elements */
+    /* Buttons styling */
     .stButton>button {
         border-radius: 8px !important;
         background-color: #21262D !important;
@@ -98,7 +106,6 @@ st.markdown("""
         border: 1px solid #30363D !important;
         font-weight: 500 !important;
         transition: all 0.2s ease-in-out !important;
-        width: 100% !important;
     }
     
     .stButton>button:hover {
@@ -116,15 +123,13 @@ st.markdown("""
         font-weight: bold;
     }
 
-    /* Mobile Specific Overrides */
+    /* Mobile Screens Override */
     @media (max-width: 768px) {
         .block-container {
-            padding-top: 0.8rem !important;
-            padding-left: 0.5rem !important;
-            padding-right: 0.5rem !important;
+            padding-left: 0.8rem !important;
+            padding-right: 0.8rem !important;
         }
         
-        /* Force two-column layout to wrap on mobile devices */
         [data-testid="column"] {
             width: 100% !important;
             flex: 1 1 100% !important;
@@ -134,7 +139,6 @@ st.markdown("""
     }
 </style>
 
-<!-- JS Fallback for Header Cleanup -->
 <script>
     const removeHeader = () => {
         const headers = document.querySelectorAll('header, [data-testid="stHeader"], [data-testid="stToolbar"]');
@@ -309,11 +313,11 @@ current_chat = st.session_state.all_chats[current_id]
 # 4. SIDEBAR CONTROLS & MONETIZATION
 # ==========================================
 with st.sidebar:
-    st.markdown("<h3 style='font-weight:700;'>⚙️ Settings</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-weight:700; color:#FFFFFF;'>⚙️ Settings</h3>", unsafe_allow_html=True)
     st.markdown("🟢 **Current Plan:** <span class='pro-badge' style='background-color:#1F6FEB;'>Free Mode</span>", unsafe_allow_html=True)
     
     st.markdown("""
-        <div style="background-color:#161B22; border:1px solid #30363D; border-radius:8px; padding:12px; margin:10px 0;">
+        <div style="background-color:#0D1117; border:1px solid #30363D; border-radius:8px; padding:12px; margin:10px 0;">
             <p style="margin:0; font-size:0.85rem; color:#8B949E;">Want unlimited high-speed AI responses & priority servers?</p>
             <a href="https://ai-roaster.lemonsqueezy.com" target="_blank" style="text-decoration:none;">
                 <button style="width:100%; margin-top:8px; background-color:#238636; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold;">
@@ -342,7 +346,7 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown("<h4>🎯 AI Persona</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#FFFFFF;'>🎯 AI Persona</h4>", unsafe_allow_html=True)
     active_mode = st.radio(
         "Select Persona:",
         ["🔥 Savage Roast Mode", "🧠 Thinking & Career Assistant"]
@@ -350,7 +354,7 @@ with st.sidebar:
 
     roast_level = "Medium"
     if active_mode == "🔥 Savage Roast Mode":
-        st.markdown("<h4>🌶️ Roast Intensity</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#FFFFFF;'>🌶️ Roast Intensity</h4>", unsafe_allow_html=True)
         roast_level = st.select_slider(
             "Level:",
             options=["Normal", "Medium", "Hard"],
