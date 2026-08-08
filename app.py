@@ -23,7 +23,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ⚡ SINGLE CLEAN BORDER & PERFECT PILL CHAT INPUT STYLING
+# ⚡ STRICT SINGLE SMOOTH PILL BORDER STYLING (NO OVERLAPPING DOUBLE BORDERS)
 st.markdown("""
 <style>
     /* Dark Theme Core */
@@ -94,26 +94,40 @@ st.markdown("""
         line-height: 1.4;
     }
 
-    /* STRICT SINGLE CLEAN BORDER FOR CHAT INPUT (NO DOUBLE GREEN/BLUE BORDERS) */
+    /* ELIMINATE OUTER STREAMLIT CHAT CONTAINER BORDER */
     div[data-testid="stChatInput"] {
-        background-color: #161B22 !important;
-        border: 1px solid #30363D !important;
-        border-radius: 24px !important;
-        outline: none !important;
-        box-shadow: none !important;
-    }
-
-    /* Remove inner border overlaps */
-    div[data-testid="stChatInput"] * {
+        background: transparent !important;
         border: none !important;
         outline: none !important;
         box-shadow: none !important;
+        padding: 0 !important;
     }
 
-    /* Single Subtle Focus Ring */
-    div[data-testid="stChatInput"]:focus-within {
+    /* TARGET ACTUAL CHAT INPUT PILL BAR (ONLY 1 SINGLE CLEAN BORDER) */
+    div[data-testid="stChatInput"] > div {
+        background-color: #161B22 !important;
+        border: 1px solid #30363D !important;
+        border-radius: 28px !important;
+        outline: none !important;
+        box-shadow: none !important;
+        padding: 2px 10px !important;
+    }
+
+    /* SINGLE SUBTLE BLUE FOCUS RING */
+    div[data-testid="stChatInput"] > div:focus-within {
         border: 1px solid #58A6FF !important;
-        box-shadow: 0 0 8px rgba(88, 166, 255, 0.2) !important;
+        box-shadow: 0 0 8px rgba(88, 166, 255, 0.25) !important;
+    }
+
+    /* KILL ALL INNER TEXTAREA & CHILD BORDERS */
+    div[data-testid="stChatInput"] * {
+        outline: none !important;
+    }
+    div[data-testid="stChatInput"] textarea {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -533,7 +547,7 @@ for message in current_chat["messages"]:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 💬 NATIVE CHAT INPUT WITH '+' ATTACHMENT ICON INSIDE
+# 💬 CHATGPT / GEMINI NATIVE CHAT INPUT WITH '+' ATTACHMENT ICON INSIDE
 chat_input_data = st.chat_input(
     f"Type a message... ({active_mode})",
     accept_file=True,
