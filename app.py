@@ -6,7 +6,7 @@ from pypdf import PdfReader
 from groq import Groq
 
 # Constants
-PAGE_TITLE = "AI Roaster & Career Assistant"
+PAGE_TITLE = "Advanced AI Companion & Career Assistant"
 PAGE_ICON = "🤖"
 LAYOUT = "wide"
 
@@ -20,7 +20,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ⚡ CLEAN MODERN STYLING & GEMINI ATTACHMENT BAR
+# ⚡ CLEAN MODERN STYLING
 st.markdown("""
 <style>
     /* Dark Theme Core */
@@ -39,7 +39,7 @@ st.markdown("""
     .block-container {
         padding-top: 1.5rem !important;
         padding-bottom: 6rem !important;
-        max-width: 900px !important;
+        max-width: 920px !important;
         margin: 0 auto;
     }
 
@@ -68,6 +68,7 @@ st.markdown("""
         border-radius: 10px;
         padding: 16px;
         margin-bottom: 12px;
+        height: 100%;
     }
     
     .mode-card h4 {
@@ -198,62 +199,64 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
     try:
         client = Groq(api_key=effective_key)
 
-        # Detect user's latest message intent
+        # Detect intent
         last_user_msg = ""
         for m in reversed(messages_history):
             if m["role"] == "user":
                 last_user_msg = m["content"].strip().lower()
                 break
 
-        simple_greetings = ["hi", "hello", "hey", "hy", "hlo", "assalamoalaikum", "salam", "kya haal hai", "kaise ho"]
-        is_greeting = last_user_msg in simple_greetings
-        is_about_bot = any(w in last_user_msg for w in ["tum kon ho", "tumhare kya feature", "tum kya kar sakte ho", "features", "who are you", "what can you do"])
+        greetings_list = ["hi", "hello", "hey", "hy", "hlo", "assalamoalaikum", "salam", "kya haal hai", "kaise ho", "good morning", "good evening"]
+        is_greeting = last_user_msg in greetings_list
+        is_asking_about_bot = any(w in last_user_msg for w in ["tum kon ho", "tumhare kya feature", "tum kya kar sakte ho", "features", "who are you", "what can you do"])
 
-        if active_mode == "🧠 Thinking & Career Assistant":
+        if active_mode == "🌟 Versatile AI Companion":
+            if is_asking_about_bot:
+                persona_instructions = """
+                YOU ARE AN ADVANCED MULTI-MODAL AI COMPANION (LIKE CHATGPT & GEMINI).
+                User is asking about your capabilities. Explain clearly that you can help with:
+                1. 💬 General Q&A, Discussions & Brainstorming
+                2. 💻 Coding, Debugging & Scripting
+                3. 📄 Resume Evaluation & PDF Analysis
+                4. 🔥 Savage Resume/Code Roasting (Optional Mode)
+                5. 🧠 Career Guidance & ATS Optimization
+                """
+            elif is_greeting:
+                persona_instructions = """
+                YOU ARE A WARM, INTELLIGENT, AND FRIENDLY ADVANCED AI COMPANION.
+                Greet the user warmly, politely, and naturally. Ask how you can assist them today with coding, questions, or career analysis.
+                """
+            else:
+                persona_instructions = """
+                YOU ARE AN ADVANCED, HIGHLY CAPABLE AI ASSISTANT (LIKE CHATGPT & GEMINI).
+                - Respond intelligently, helpfully, and accurately to any request (Coding, Writing, Analysis, Q&A).
+                - Maintain a helpful, smart, and friendly tone.
+                """
+        elif active_mode == "🧠 Career & ATS Expert":
             persona_instructions = """
             YOU ARE A PROFESSIONAL CAREER & ATS RESUME EXPERT.
             - Provide structured, professional advice, ATS resume scoring tips, and constructive recommendations.
             """
-        else:
+        else: # 🔥 Savage Roast Mode
             intensity_map = {
                 "Normal": "Funny, sarcastic, lighthearted banter.",
                 "Medium": "Sharp, brutally honest, witty roast.",
                 "Hard": "ULTIMATE SAVAGE ROAST! Ruthlessly target weak points, buzzwords, and experience gaps."
             }
+            persona_instructions = f"""
+            YOU ARE AN INTELLIGENT AI ROASTER & CAREER CONSULTANT.
+            Roast Level: {roast_level} ({intensity_map.get(roast_level, 'Sharp roast')})
 
-            if is_about_bot:
-                persona_instructions = """
-                YOU ARE THE AI ROASTER & CAREER ASSISTANT BOT.
-                User is asking about YOUR features and capabilities.
-                Answer directly, enthusiastically, and smartly in bullet points. List your key features:
-                1. 🔥 Savage Resume Roasting
-                2. 💡 Actionable Career & Resume Solutions
-                3. 🧠 Professional ATS Career Guidance
-                4. 📄 Gemini-style PDF Resume Scanning
-                5. 🌐 Multi-language support (Roman Urdu, English, Hindi, etc.)
-                DO NOT roast a resume when asked about yourself!
-                """
-            elif is_greeting:
-                persona_instructions = f"""
-                YOU ARE A WITTY, QUICK-THINKING AI ROASTER.
-                Reply with ONE short, punchy 1-line sarcastic greeting.
-                Example: 'Haan bhai, bolo! Resume roast karwana hai ya career tabahi ki baat karni hai?'
-                """
-            else:
-                persona_instructions = f"""
-                YOU ARE AN INTELLIGENT AI ROASTER & CAREER CONSULTANT.
-                Roast Level: {roast_level} ({intensity_map.get(roast_level, 'Sharp roast')})
-
-                IMPORTANT DUAL-RESPONSE RULE (WHEN EVALUATING RESUMES/TEXT):
-                Structure your response into 2 distinct sections:
-                1. 🔥 **The Roast:** Witty, sarcastic, sharp attack on weak points or buzzwords.
-                2. 💡 **How to Fix It (Solution):** 2-3 clear, professional, actionable steps to fix those exact weaknesses.
-                """
+            IMPORTANT DUAL-RESPONSE RULE (WHEN EVALUATING RESUMES/TEXT):
+            Structure your response into 2 distinct sections:
+            1. 🔥 **The Roast:** Witty, sarcastic, sharp attack on weak points or buzzwords.
+            2. 💡 **How to Fix It (Solution):** 2-3 clear, professional, actionable steps to fix those exact weaknesses.
+            """
 
         if language in ["Roman Urdu", "Roman Hindi"]:
             lang_instruction = f"""
             STRICT LANGUAGE & GRAMMAR RULES FOR {language}:
-            1. Use NATURAL everyday spoken {language} (Latin script).
+            1. Use NATURAL everyday spoken {language} in Latin script.
             2. STRICT GENDER RULE: Always address the user in standard masculine/neutral form ('kar rahe ho', 'puch rahe ho', 'aaye ho', 'kaise ho'). NEVER use wrong female inflections ('leti ho', 'kar rahi ho', 'aayi hai').
             3. NO BROKEN GOOGLE TRANSLATIONS: Write naturally like a real Pakistani/Indian tech user on WhatsApp.
             """
@@ -268,7 +271,7 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
 
         formatted_messages = [{"role": "system", "content": system_persona}]
         
-        # Add past chat history (clean text)
+        # Add past clean messages
         for msg in messages_history[-6:]:
             formatted_messages.append({"role": msg["role"], "content": msg["content"]})
 
@@ -279,11 +282,13 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
                 "content": f"ATTACHED RESUME CONTENT TO EVALUATE:\n{active_pdf_text}"
             })
 
+        temp = 0.7 if (is_greeting or is_asking_about_bot) else (0.85 if active_mode == "🔥 Savage Roast Mode" else 0.4)
+
         completion = call_groq_with_fallback(
             client,
             messages=formatted_messages,
-            temperature=0.7 if (is_greeting or is_about_bot) else (0.85 if active_mode == "🔥 Savage Roast Mode" else 0.3),
-            max_tokens=900,
+            temperature=temp,
+            max_tokens=950,
             is_pro=st.session_state.is_pro
         )
         return completion.choices[0].message.content
@@ -315,7 +320,7 @@ with st.sidebar:
     st.markdown("""
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px; border-bottom:1px solid #30363D; padding-bottom:10px;">
             <span style="font-size:1.5rem;">🤖</span>
-            <h3 style="margin:0; color:#FFFFFF; font-size:1.1rem;">AI Assistant</h3>
+            <h3 style="margin:0; color:#FFFFFF; font-size:1.1rem;">AI Companion</h3>
         </div>
     """, unsafe_allow_html=True)
 
@@ -383,7 +388,10 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    active_mode = st.radio("AI MODE:", ["🔥 Savage Roast Mode", "🧠 Thinking & Career Assistant"])
+    active_mode = st.radio(
+        "AI MODE:", 
+        ["🌟 Versatile AI Companion", "🔥 Savage Roast Mode", "🧠 Career & ATS Expert"]
+    )
 
     roast_level = "Medium"
     if active_mode == "🔥 Savage Roast Mode":
@@ -411,25 +419,32 @@ with st.sidebar:
 # ==========================================
 st.markdown("""
     <div class='brand-header'>
-        <h1 class='brand-title'>AI Roaster & Career Assistant</h1>
-        <p class='brand-subtitle'>Chat casually or attach PDF resume for instant AI analysis.</p>
+        <h1 class='brand-title'>Advanced AI Companion</h1>
+        <p class='brand-subtitle'>Chat casually, ask questions, generate code, or attach PDF resume for smart analysis.</p>
     </div>
 """, unsafe_allow_html=True)
 
 if not current_chat["messages"]:
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown("""
             <div class='mode-card'>
-                <h4>🔥 Savage Roast Mode</h4>
-                <p>Upload a resume or chat directly for sharp, witty, and honest feedback.</p>
+                <h4>🌟 Versatile AI (ChatGPT/Gemini)</h4>
+                <p>Ask anything, generate code, write emails, or chat casually with smart AI.</p>
             </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown("""
             <div class='mode-card'>
-                <h4>🧠 Career Assistant Mode</h4>
-                <p>Get ATS breakdowns, professional career guidance, and actionable advice.</p>
+                <h4>🔥 Savage Roast Mode</h4>
+                <p>Upload a resume or text for sharp, witty roasts + actionable solutions.</p>
+            </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown("""
+            <div class='mode-card'>
+                <h4>🧠 Career & ATS Expert</h4>
+                <p>Get ATS breakdowns, interview prep, and professional career advice.</p>
             </div>
         """, unsafe_allow_html=True)
 
@@ -439,7 +454,7 @@ for message in current_chat["messages"]:
         st.markdown(message["content"])
 
 # 📎 GEMINI-STYLE ATTACHMENT BAR RIGHT ABOVE CHAT INPUT
-col_attach, col_status = st.columns([1, 4])
+col_attach, col_status = st.columns([1.2, 3.8])
 with col_attach:
     with st.popover("📎 Attach PDF"):
         file_input = st.file_uploader("Upload Resume PDF", type=["pdf"], key="main_pdf_uploader")
