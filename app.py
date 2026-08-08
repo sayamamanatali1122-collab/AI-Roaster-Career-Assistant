@@ -23,7 +23,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ⚡ CHATGPT / GEMINI OFFICIAL CHAT BAR STYLING
+# ⚡ PERFECT EQUAL CARD SIZING & UNIFIED CHAT BAR STYLING
 st.markdown("""
 <style>
     /* Dark Theme Core */
@@ -41,8 +41,8 @@ st.markdown("""
     /* Layout Spacing */
     .block-container {
         padding-top: 1.5rem !important;
-        padding-bottom: 7rem !important;
-        max-width: 900px !important;
+        padding-bottom: 6rem !important;
+        max-width: 920px !important;
         margin: 0 auto;
     }
 
@@ -64,14 +64,16 @@ st.markdown("""
         margin-top: 4px;
     }
 
-    /* Cards */
+    /* PERFECT EQUAL HEIGHT CARDS */
     .mode-card {
         background-color: #161B22 !important;
         border: 1px solid #30363D !important;
         border-radius: 12px;
-        padding: 18px;
-        margin-bottom: 12px;
-        height: 100%;
+        padding: 16px;
+        min-height: 145px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
         transition: border-color 0.2s ease;
     }
     .mode-card:hover {
@@ -80,53 +82,27 @@ st.markdown("""
     
     .mode-card h4 {
         color: #FFFFFF !important;
-        font-size: 1.05rem !important;
+        font-size: 1rem !important;
         font-weight: 700;
         margin: 0 0 6px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
     .mode-card p {
         color: #8B949E !important;
-        font-size: 0.88rem !important;
+        font-size: 0.86rem !important;
         margin: 0;
         line-height: 1.4;
     }
 
-    /* Chat Input Pill Container Styling */
-    div[data-testid="stChatInput"] {
-        background-color: #161B22 !important;
-        border: 1px solid #30363D !important;
-        border-radius: 28px !important;
-        padding-left: 10px !important;
-    }
-
-    /* Attached File Badge floating above Chat Bar */
-    .attached-file-badge {
-        position: fixed;
-        bottom: 75px;
-        left: max(25px, calc(50vw - 430px));
-        z-index: 9999;
-        background-color: #1F6FEB22;
-        border: 1px solid #1F6FEB;
-        color: #58A6FF;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.82rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-
-    /* Custom File Upload Button Styling (Sleek '+' Icon) */
-    .chat-attachment-bar {
-        margin-bottom: 8px;
-    }
+    /* File Uploader styling inside Chat Bar Row */
     [data-testid="stFileUploader"] {
         background: transparent !important;
         border: none !important;
         padding: 0 !important;
+        margin: 0 !important;
     }
     [data-testid="stFileUploader"] label {
         display: none !important;
@@ -140,10 +116,34 @@ st.markdown("""
         background-color: #21262D !important;
         color: #58A6FF !important;
         border: 1px solid #30363D !important;
-        border-radius: 8px !important;
+        border-radius: 20px !important;
         padding: 6px 14px !important;
         font-weight: 600 !important;
         font-size: 0.85rem !important;
+        height: 42px !important;
+        margin-top: 10px !important;
+    }
+
+    /* Chat Input Bar styling */
+    div[data-testid="stChatInput"] {
+        background-color: #161B22 !important;
+        border: 1px solid #30363D !important;
+        border-radius: 28px !important;
+    }
+
+    /* Attached File Badge floating above Chat Bar */
+    .attached-file-badge {
+        background-color: #1F6FEB22;
+        border: 1px solid #1F6FEB;
+        color: #58A6FF;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -258,7 +258,7 @@ def call_groq_engine(client, messages, is_pro=False, image_b64=None):
         "messages": messages,
         "temperature": 0.7,
         "max_tokens": 1000,
-        "frequency_penalty": 0.1,  # Low penalty maintains natural Urdu grammar
+        "frequency_penalty": 0.1,
         "presence_penalty": 0.1,
     }
 
@@ -549,14 +549,14 @@ if not current_chat["messages"]:
     with col1:
         st.markdown("""
             <div class='mode-card'>
-                <h4>🌟 Versatile AI (ChatGPT/Gemini)</h4>
+                <h4>🌟 Versatile Assistant</h4>
                 <p>Ask anything, generate code, write emails, or chat casually with smart AI.</p>
             </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown("""
             <div class='mode-card'>
-                <h4>🔥 Savage Roast Mode</h4>
+                <h4>🔥 Savage Roaster</h4>
                 <p>Upload a resume or text for sharp, witty roasts + actionable solutions.</p>
             </div>
         """, unsafe_allow_html=True)
@@ -577,10 +577,11 @@ for message in current_chat["messages"]:
 if st.session_state.attached_file_name:
     st.markdown(f"<div class='attached-file-badge'>📄 Attached: <b>{st.session_state.attached_file_name}</b></div>", unsafe_allow_html=True)
 
-# Attachment bar right above chat bar
-with st.popover("📎 Attach File (PDF / Image)", use_container_width=False):
+# 📎 UNIFIED SINGLE ROW CHAT BAR AT BOTTOM
+col_file, col_input = st.columns([1.6, 8.4])
+with col_file:
     uploaded_file = st.file_uploader(
-        "Upload PDF or Image",
+        "📎 Upload File",
         type=["pdf", "png", "jpg", "jpeg", "webp"],
         key="main_attachment_input"
     )
@@ -590,11 +591,9 @@ with st.popover("📎 Attach File (PDF / Image)", use_container_width=False):
             st.session_state.attached_file_type = f_type
             st.session_state.attached_file_data = f_data
             st.session_state.attached_file_name = uploaded_file.name
-            st.success(f"Loaded: {uploaded_file.name}")
-            st.rerun()
 
-# Chat Input Bar
-prompt_text = st.chat_input(f"Type a message... ({active_mode})")
+with col_input:
+    prompt_text = st.chat_input(f"Type a message... ({active_mode})")
 
 if prompt_text or st.session_state.attached_file_data:
     user_text = prompt_text if prompt_text else "Please evaluate my attached document/file."
