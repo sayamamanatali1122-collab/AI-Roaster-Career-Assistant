@@ -94,19 +94,14 @@ st.markdown("""
         line-height: 1.4;
     }
 
-    /* Clean Expander / Popover for File Attachment */
-    [data-testid="stExpander"] {
-        background-color: #161B22 !important;
-        border: 1px solid #30363D !important;
-        border-radius: 10px !important;
-        margin-bottom: 10px !important;
-    }
-
-    /* Clean Chat Input Bar */
+    /* Clean Chat Input Bar styling */
     div[data-testid="stChatInput"] {
         background-color: #161B22 !important;
         border: 1px solid #30363D !important;
-        border-radius: 24px !important;
+        border-radius: 28px !important;
+    }
+    div[data-testid="stChatInput"]:focus-within {
+        border-color: #58A6FF !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -124,13 +119,6 @@ if "current_chat_id" not in st.session_state:
     initial_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     st.session_state.all_chats[initial_id] = {"title": "New Chat", "messages": []}
     st.session_state.current_chat_id = initial_id
-
-if "attached_file_data" not in st.session_state:
-    st.session_state.attached_file_data = None
-if "attached_file_name" not in st.session_state:
-    st.session_state.attached_file_name = None
-if "attached_file_type" not in st.session_state:
-    st.session_state.attached_file_type = None
 
 # ==========================================
 # 3. MULTIMODAL FILE PROCESSOR & AI ENGINE
@@ -381,9 +369,6 @@ def start_new_chat():
     new_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     st.session_state.all_chats[new_id] = {"title": "New Chat", "messages": []}
     st.session_state.current_chat_id = new_id
-    st.session_state.attached_file_data = None
-    st.session_state.attached_file_name = None
-    st.session_state.attached_file_type = None
 
 def delete_chat(chat_id):
     del st.session_state.all_chats[chat_id]
@@ -536,45 +521,33 @@ for message in current_chat["messages"]:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Attached File Badge directly above Chat Bar
-if st.session_state.attached_file_name:
-    st.info(f"📄 **Attached File Ready:** `{st.session_state.attached_file_name}` (Send your prompt to analyze)")
+# 💬 NATIVE INTEGRATED CHAT INPUT BAR WITH ATTACHMENT ICON (ChatGPT/Gemini Style)
+chat_input_data = st.chat_input(
+    f"Type a message... ({active_mode})",
+    accept_file=True,
+    file_type=["pdf", "png", "jpg", "jpeg", "webp"]
+)
 
-# 📎 CLEAN FILE ATTACHMENT BAR (Directly above Chat Input)
-with st.expander("📎 Attach PDF or Image File (Optional)", expanded=False):
-    uploaded_file = st.file_uploader(
-        "Upload PDF Resume, Code Screenshot, or Image",
-        type=["pdf", "png", "jpg", "jpeg", "webp"],
-        key="main_attachment_input"
-    )
-    if uploaded_file:
-        f_type, f_data = process_uploaded_file(uploaded_file)
-        if f_type != "error":
-            st.session_state.attached_file_type = f_type
-            st.session_state.attached_file_data = f_data
-            st.session_state.attached_file_name = uploaded_file.name
-            st.success(f"✅ Loaded: {uploaded_file.name}")
-            st.rerun()
-
-# 💬 FULL-WIDTH CLEAN CHAT INPUT BAR (ChatGPT/Gemini Style)
-prompt_text = st.chat_input(f"Type a message... ({active_mode})")
-
-if prompt_text or st.session_state.attached_file_data:
-    user_text = prompt_text if prompt_text else "Please evaluate my attached document/file."
+if chat_input_data:
+    prompt_text = chat_input_data.get("text", "")
+    uploaded_files = chat_input_data.get("files", [])
     
-    current_f_type = st.session_state.attached_file_type
-    current_f_data = st.session_state.attached_file_data
-    user_display_msg = user_text
+    current_f_type = None
+    current_f_data = None
+    user_display_msg = prompt_text
 
-    if st.session_state.attached_file_name and current_f_data:
-        user_display_msg = f"📎 **[Attached File: {st.session_state.attached_file_name}]**\n\n{user_text}"
-        st.session_state.attached_file_data = None
-        st.session_state.attached_file_name = None
-        st.session_state.attached_file_type = None
+    if uploaded_files:
+        attached_file = uploaded_files[0]
+        f_type, f_data = process_uploaded_file(attached_file)
+        if f_type != "error":
+            current_f_type = f_type
+            current_f_data = f_data
+            file_name = attached_file.name
+            user_display_msg = f"📎 **[Attached File: {file_name}]**\n\n{prompt_text}" if prompt_text else f"📎 **[Attached File: {file_name}]**\nPlease evaluate my attached file."
 
     # Auto Title Generator
     if not current_chat["messages"] or current_chat["title"] == "New Chat":
-        current_chat["title"] = generate_chat_title(user_text)
+        current_chat["title"] = generate_chat_title(user_text if 'user_text' in locals() else prompt_text)
 
     st.chat_message("user").markdown(user_display_msg)
     current_chat["messages"].append({"role": "user", "content": user_display_msg})
