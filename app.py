@@ -19,19 +19,27 @@ st.set_page_config(
 )
 
 # ==========================================
-# PREMIUM CSS DESIGN SYSTEM
+# PREMIUM CSS DESIGN SYSTEM (FIXED ICONS & EXPANDERS)
 # ==========================================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-* { font-family: 'Inter', sans-serif !important; box-sizing: border-box; }
-
-/* ── CORE DARK THEME ── */
-.stApp, [data-testid="stAppViewContainer"] {
+/* ── BASE TYPOGRAPHY ── */
+html, body, [data-testid="stAppViewContainer"], .stApp {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     background-color: #080C12 !important;
     color: #C9D1D9 !important;
 }
+
+/* ── PRESERVE STREAMLIT MATERIAL ICONS (FIXES 'visibility' & BROKEN ICONS) ── */
+[data-testid="stIcon"],
+[aria-hidden="true"],
+.material-symbols-outlined,
+[class*="material-symbols"] {
+    font-family: 'Material Symbols Outlined', 'Material Icons', sans-serif !important;
+}
+
 [data-testid="stAppViewContainer"]::before {
     content: '';
     position: fixed;
@@ -52,58 +60,53 @@ st.markdown("""
 [data-testid="stSidebar"] > div { padding: 0 !important; }
 section[data-testid="stSidebar"] > div > div > div { padding: 1rem 0.9rem !important; }
 
-/* ── BULLETPROOF EXPANDER FIX ── */
+/* ── EXPANDER FIX (TITLE & ANIMATION RESTORED) ── */
 [data-testid="stExpander"] {
     background: #0D1117 !important;
     border: 1px solid #21262D !important;
     border-radius: 10px !important;
     margin-bottom: 12px !important;
+    overflow: hidden !important;
 }
+
 [data-testid="stExpander"] details {
-    width: 100% !important;
     border: none !important;
 }
+
 [data-testid="stExpander"] summary {
-    min-height: 44px !important;
-    padding: 0 12px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
+    padding: 12px 14px !important;
     background: #0D1117 !important;
     border-radius: 10px !important;
     cursor: pointer !important;
+    transition: background 0.2s ease, border-color 0.2s ease !important;
 }
+
 [data-testid="stExpander"] summary:hover {
     background: #161B22 !important;
     border-color: #388BFD !important;
 }
-/* Hide broken raw icon text completely */
-[data-testid="stExpander"] summary [data-testid="stExpanderToggleIcon"],
+
+/* Properly style title text without hiding spans */
+[data-testid="stExpander"] summary p,
 [data-testid="stExpander"] summary span {
-    display: none !important;
-}
-/* Style title */
-[data-testid="stExpander"] summary p {
-    margin: 0 !important;
     color: #C9D1D9 !important;
-    font-size: 0.84rem !important;
+    font-size: 0.86rem !important;
     font-weight: 600 !important;
 }
-/* Add clean custom arrow */
-[data-testid="stExpander"] summary::after {
-    content: '▼';
-    font-size: 0.7rem;
-    color: #8B949E;
-    transition: transform 0.2s ease;
+
+[data-testid="stExpander"] details[open] summary {
+    border-bottom: 1px solid #21262D !important;
 }
-[data-testid="stExpander"] details[open] summary::after {
-    transform: rotate(180deg);
-    color: #388BFD;
-}
+
 [data-testid="stExpander"] details[open] > div {
     background: #0D1117 !important;
-    border-top: 1px solid #21262D !important;
-    padding: 12px !important;
+    padding: 14px 16px !important;
+    animation: fadeInSlide 0.25s ease-in-out !important;
+}
+
+@keyframes fadeInSlide {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* ── MAIN LAYOUT ── */
@@ -222,7 +225,7 @@ section[data-testid="stSidebar"] > div > div > div { padding: 1rem 0.9rem !impor
     border: none !important;
 }
 
-/* ── CHAT INPUT — SINGLE CLEAN PILL ── */
+/* ── CHAT INPUT ── */
 div[data-testid="stChatInput"] {
     background: transparent !important;
     border: none !important;
