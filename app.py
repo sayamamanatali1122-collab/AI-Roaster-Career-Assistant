@@ -10,110 +10,301 @@ from groq import Groq
 
 PAGE_TITLE = "Advanced AI Companion"
 PAGE_ICON = "🤖"
-LAYOUT = "wide"
 
 st.set_page_config(
     page_title=PAGE_TITLE,
     page_icon=PAGE_ICON,
-    layout=LAYOUT,
+    layout="wide",
     initial_sidebar_state="expanded"
 )
 
+# ==========================================
+# PREMIUM CSS DESIGN SYSTEM
+# ==========================================
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-    * { font-family: 'Inter', sans-serif !important; }
+* { font-family: 'Inter', sans-serif !important; box-sizing: border-box; }
 
-    .stApp, [data-testid="stAppViewContainer"] {
-        background-color: #0D1117 !important;
-        color: #C9D1D9 !important;
-    }
-    [data-testid="stSidebar"] {
-        background-color: #161B22 !important;
-        border-right: 1px solid #30363D !important;
-    }
-    .block-container {
-        padding-top: 1.5rem !important;
-        padding-bottom: 6rem !important;
-        max-width: 860px !important;
-        margin: 0 auto;
-    }
-    .brand-header { text-align: center; margin-bottom: 1.8rem; }
-    .brand-title {
-        font-size: clamp(1.8rem, 4vw, 2.4rem) !important;
-        font-weight: 800 !important;
-        color: #FFFFFF !important;
-        letter-spacing: -0.5px;
-    }
-    .brand-subtitle {
-        color: #8B949E !important;
-        font-size: 0.92rem !important;
-        margin-top: 5px;
-    }
+/* ── CORE DARK THEME ── */
+.stApp, [data-testid="stAppViewContainer"] {
+    background-color: #080C12 !important;
+    color: #C9D1D9 !important;
+}
+[data-testid="stAppViewContainer"]::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+        radial-gradient(ellipse 60% 40% at 20% 10%, rgba(88,166,255,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 35% at 80% 90%, rgba(139,92,246,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+}
 
-    /* MODE CARDS */
-    .mode-card {
-        background-color: #161B22 !important;
-        border: 1px solid #30363D !important;
-        border-radius: 12px;
-        padding: 18px;
-        min-height: 140px !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: flex-start !important;
-        transition: border-color 0.2s ease, transform 0.15s ease;
-        cursor: default;
-    }
-    .mode-card:hover {
-        border-color: #58A6FF !important;
-        transform: translateY(-2px);
-    }
-    .mode-card h4 {
-        color: #FFFFFF !important;
-        font-size: 0.97rem !important;
-        font-weight: 700;
-        margin: 0 0 7px 0;
-    }
-    .mode-card p {
-        color: #8B949E !important;
-        font-size: 0.84rem !important;
-        margin: 0;
-        line-height: 1.45;
-    }
+/* ── SIDEBAR ── */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0D1117 0%, #0A0F18 100%) !important;
+    border-right: 1px solid #1C2333 !important;
+}
+[data-testid="stSidebar"] .block-container { padding: 0 !important; }
+[data-testid="stSidebar"] > div { padding: 0 !important; }
+section[data-testid="stSidebar"] > div > div > div { padding: 1rem 0.9rem !important; }
 
-    /* CHAT INPUT — SINGLE CLEAN PILL BORDER */
-    div[data-testid="stChatInput"] {
-        background: transparent !important;
-        border: none !important;
-        outline: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-    }
-    div[data-testid="stChatInput"] > div {
-        background-color: #161B22 !important;
-        border: 1px solid #30363D !important;
-        border-radius: 28px !important;
-        outline: none !important;
-        box-shadow: none !important;
-        padding: 2px 12px !important;
-    }
-    div[data-testid="stChatInput"] > div:focus-within {
-        border: 1px solid #58A6FF !important;
-        box-shadow: 0 0 10px rgba(88, 166, 255, 0.2) !important;
-    }
-    div[data-testid="stChatInput"] * { outline: none !important; }
-    div[data-testid="stChatInput"] textarea {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        outline: none !important;
-    }
+/* ── MAIN LAYOUT ── */
+.block-container {
+    padding-top: 2rem !important;
+    padding-bottom: 7rem !important;
+    max-width: 820px !important;
+    margin: 0 auto !important;
+    position: relative;
+    z-index: 1;
+}
 
-    /* SIDEBAR BUTTONS */
-    [data-testid="stSidebar"] button {
-        border-radius: 8px !important;
-    }
+/* ── HERO HEADER ── */
+.hero-wrap {
+    text-align: center;
+    padding: 1.5rem 0 2.2rem 0;
+    position: relative;
+}
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(88,166,255,0.1);
+    border: 1px solid rgba(88,166,255,0.25);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #58A6FF;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+}
+.hero-title {
+    font-size: clamp(2rem, 5vw, 2.8rem) !important;
+    font-weight: 900 !important;
+    letter-spacing: -1px;
+    line-height: 1.15;
+    background: linear-gradient(135deg, #FFFFFF 0%, #8B949E 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 10px 0 !important;
+}
+.hero-sub {
+    color: #6E7681 !important;
+    font-size: 0.95rem !important;
+    font-weight: 400;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ── MODE CARDS ── */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 2rem;
+}
+.mode-card {
+    background: linear-gradient(135deg, #161B22 0%, #0D1117 100%) !important;
+    border: 1px solid #21262D !important;
+    border-radius: 16px;
+    padding: 20px 18px;
+    height: 150px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    transition: border-color 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+.mode-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(88,166,255,0.4), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+.mode-card:hover {
+    border-color: #30363D !important;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+}
+.mode-card:hover::before { opacity: 1; }
+
+.card-icon {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    display: block;
+}
+.card-title {
+    color: #FFFFFF !important;
+    font-size: 0.9rem !important;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.card-desc {
+    color: #6E7681 !important;
+    font-size: 0.8rem !important;
+    margin: 0;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ── CHAT MESSAGES ── */
+[data-testid="stChatMessage"] {
+    background: transparent !important;
+    border: none !important;
+}
+
+/* ── CHAT INPUT — SINGLE CLEAN PILL ── */
+div[data-testid="stChatInput"] {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+div[data-testid="stChatInput"] > div {
+    background: #0D1117 !important;
+    border: 1px solid #21262D !important;
+    border-radius: 28px !important;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: 4px 14px !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+div[data-testid="stChatInput"] > div:focus-within {
+    border: 1px solid #388BFD !important;
+    box-shadow: 0 0 0 3px rgba(56,139,253,0.12) !important;
+}
+div[data-testid="stChatInput"] * { outline: none !important; }
+div[data-testid="stChatInput"] textarea {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    color: #C9D1D9 !important;
+}
+
+/* ── SIDEBAR COMPONENTS ── */
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 0 14px 0;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #1C2333;
+}
+.sidebar-brand-icon {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, #1F6FEB, #388BFD);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+}
+.sidebar-brand-name {
+    color: #FFFFFF !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+}
+
+.status-badge-pro {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(35,134,54,0.15);
+    border: 1px solid rgba(35,134,54,0.35);
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #3FB950;
+    width: 100%;
+    margin-bottom: 10px;
+}
+.status-badge-free {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(31,111,235,0.12);
+    border: 1px solid rgba(31,111,235,0.3);
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #58A6FF;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.upgrade-box {
+    background: linear-gradient(135deg, rgba(35,134,54,0.08), rgba(35,134,54,0.03));
+    border: 1px solid rgba(35,134,54,0.2);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+.upgrade-box p {
+    margin: 0 0 8px 0;
+    font-size: 0.78rem;
+    color: #6E7681;
+    line-height: 1.4;
+}
+.upgrade-btn {
+    display: block;
+    width: 100%;
+    background: linear-gradient(135deg, #238636, #2EA043);
+    color: #FFFFFF !important;
+    text-decoration: none !important;
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: 7px;
+    font-size: 0.83rem;
+    font-weight: 700;
+    transition: opacity 0.2s;
+}
+.upgrade-btn:hover { opacity: 0.9; }
+
+.section-label {
+    color: #484F58 !important;
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin: 12px 0 6px 0;
+}
+
+/* ── STREAMLIT OVERRIDES ── */
+.stSelectbox > label,
+.stRadio > label,
+.stSlider > label { color: #8B949E !important; font-size: 0.82rem !important; font-weight: 600 !important; }
+.stSelectbox [data-baseweb="select"] > div {
+    background: #0D1117 !important;
+    border-color: #21262D !important;
+    border-radius: 8px !important;
+}
+.stRadio [data-testid="stMarkdownContainer"] p { color: #C9D1D9 !important; font-size: 0.88rem !important; }
+[data-testid="stSidebar"] button {
+    border-radius: 8px !important;
+    font-size: 0.82rem !important;
+}
+.stExpander {
+    background: rgba(22,27,34,0.5) !important;
+    border: 1px solid #21262D !important;
+    border-radius: 10px !important;
+}
+.stExpander summary { color: #8B949E !important; font-size: 0.82rem !important; }
+hr { border-color: #1C2333 !important; margin: 10px 0 !important; }
+.stSpinner > div { border-top-color: #388BFD !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -135,741 +326,474 @@ if "current_chat_id" not in st.session_state:
 def process_uploaded_file(uploaded_file):
     file_type = uploaded_file.type
     file_name = uploaded_file.name
-
     if "pdf" in file_type or file_name.lower().endswith(".pdf"):
         try:
             reader = PdfReader(uploaded_file)
-            text = ""
-            for page in reader.pages:
-                extracted = page.extract_text()
-                if extracted:
-                    text += extracted + "\n"
-            return ("pdf", text.strip() if text.strip() else "PDF loaded, lekin text extract nahi ho saka.")
+            text = "".join(p.extract_text() or "" for p in reader.pages)
+            return ("pdf", text.strip() or "PDF loaded, lekin text extract nahi ho saka.")
         except Exception as e:
-            return ("error", f"PDF Extraction Error: {str(e)}")
-
+            return ("error", f"PDF Error: {e}")
     elif any(ext in file_type or file_name.lower().endswith(ext)
              for ext in ["png", "jpg", "jpeg", "webp"]):
         try:
-            image = Image.open(uploaded_file)
-            buffered = io.BytesIO()
-            fmt = "PNG" if file_name.lower().endswith(".png") else "JPEG"
-            image.save(buffered, format=fmt)
-            img_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
-            return ("image", img_b64)
+            img = Image.open(uploaded_file)
+            buf = io.BytesIO()
+            img.save(buf, format="PNG" if file_name.lower().endswith(".png") else "JPEG")
+            return ("image", base64.b64encode(buf.getvalue()).decode())
         except Exception as e:
-            return ("error", f"Image Error: {str(e)}")
-
+            return ("error", f"Image Error: {e}")
     return ("error", "Sirf PDF ya Image (PNG, JPG, JPEG, WEBP) upload karein.")
 
 def get_effective_api_key():
     try:
-        if "GROQ_API_KEY" in st.secrets and st.secrets["GROQ_API_KEY"]:
-            return st.secrets["GROQ_API_KEY"]
+        k = st.secrets.get("GROQ_API_KEY", "")
+        if k: return k
     except Exception:
         pass
     return os.environ.get("GROQ_API_KEY", "")
 
-def verify_lemonsqueezy_license(license_key):
-    url = "https://api.lemonsqueezy.com/v1/licenses/validate"
+def verify_lemonsqueezy_license(key):
     try:
-        response = requests.post(url, data={"license_key": license_key.strip()}, timeout=10)
-        data = response.json()
-        if data.get("valid", False):
-            return True, "License verified!"
-        return False, data.get("error", "Invalid license key.")
+        r = requests.post("https://api.lemonsqueezy.com/v1/licenses/validate",
+                          data={"license_key": key.strip()}, timeout=10)
+        d = r.json()
+        return (True, "License verified!") if d.get("valid") else (False, d.get("error", "Invalid key."))
     except Exception as e:
-        return False, f"Error: {str(e)}"
+        return False, str(e)
 
 # ==========================================
 # TONE DETECTOR
 # ==========================================
 def detect_user_tone(msg: str) -> str:
-    """
-    Returns one of:
-      flirty | frustrated | angry | sad | curious | formal | greeting | casual
-    """
     m = msg.lower().strip()
-
-    flirty_words = ["honey", "sweetheart", "baby", "cutie", "gorgeous", "darling",
-                    "handsome", "beautiful", "meri jaan", "jaan", "pyare", "pyari"]
-    frustrated_words = ["pagal", "bakwaas", "chup", "ugh", "argh", "kuch nahi ho raha",
-                        "nahi ho raha", "samajh nahi", "kya kar raha", "bekar", "faltu",
-                        "thak gaya", "thak gayi", "problem hai", "masla hai", "frustrated",
-                        "irritated", "pata nahi kya", "kuch nahi"]
-    angry_words = ["gussa", "bura", "worst", "hate", "stupid", "idiot", "nonsense",
-                   "ghanta", "bekaar", "ullu", "paagal", "ganda"]
-    sad_words = ["udaas", "rona", "rota", "roti", "sad", "depressed", "dukh",
-                 "takleef", "dard", "akela", "lonely", "mushkil waqt", "bura lag raha"]
-    greet_words = ["hi", "hello", "hey", "hy", "hlo", "hellow", "helloo",
-                   "salam", "assalam", "good morning", "good evening", "good night",
-                   "kaise ho", "kya haal", "theek ho"]
-    curious_words = ["kya", "kyun", "kaisa", "kaise", "kab", "kahan", "kon", "what",
-                     "why", "how", "when", "where", "who", "explain", "bata", "samjhao",
-                     "opinion", "sochte ho", "kya lagta"]
-
     words = m.split()
-
-    # Flirty check first (overrides greeting if flirty words used)
-    if any(fw in m for fw in flirty_words):
-        return "flirty"
-    if any(w in m for w in angry_words):
-        return "angry"
-    if any(w in m for w in frustrated_words):
-        return "frustrated"
-    if any(w in m for w in sad_words):
-        return "sad"
-    if any(w in m for w in greet_words) and len(words) <= 5:
-        return "greeting"
-    if any(w in m for w in curious_words):
-        return "curious"
-    if any(w in m for w in ["sir", "please", "kindly", "request", "formally"]):
-        return "formal"
+    flirty   = ["honey","sweetheart","baby","cutie","gorgeous","darling","handsome","beautiful","meri jaan","jaan","pyare","pyari"]
+    angry    = ["gussa","worst","hate","stupid","idiot","nonsense","ghanta","bekaar","ullu","paagal","ganda"]
+    frustrated=["bakwaas","ugh","argh","kuch nahi ho raha","nahi ho raha","samajh nahi","bekar","faltu","thak gaya","thak gayi","frustrated","irritated","pata nahi kya"]
+    sad      = ["udaas","rona","rota","roti","sad","depressed","dukh","takleef","dard","akela","lonely","bura lag raha"]
+    greet    = ["hi","hello","hey","hy","hlo","hellow","helloo","salam","assalam","good morning","good evening","good night","kaise ho","kya haal","theek ho"]
+    curious  = ["kya","kyun","kaisa","kaise","kab","kahan","kon","what","why","how","when","where","who","explain","bata","samjhao","opinion","sochte ho","kya lagta"]
+    if any(w in m for w in flirty):     return "flirty"
+    if any(w in m for w in angry):      return "angry"
+    if any(w in m for w in frustrated): return "frustrated"
+    if any(w in m for w in sad):        return "sad"
+    if any(w in m for w in greet) and len(words) <= 5: return "greeting"
+    if any(w in m for w in curious):    return "curious"
+    if any(w in m for w in ["sir","please","kindly","request","formally"]): return "formal"
     return "casual"
 
 # ==========================================
-# LANGUAGE INSTRUCTION BUILDER
+# LANGUAGE INSTRUCTION
 # ==========================================
 def build_language_instruction(language: str) -> str:
     if language == "Roman Urdu":
         return """
 === LANGUAGE: 100% AUTHENTIC PAKISTANI ROMAN URDU (LATIN SCRIPT) ===
+Every word must be natural Pakistani Roman Urdu written in the Latin alphabet.
+Tone: casual, warm — like texting a Pakistani friend.
 
-YOU ARE WRITING IN ROMAN URDU. THIS MEANS:
-- Every single word must be natural Pakistani Roman Urdu
-- Written in Latin (English) alphabet — NOT Urdu script
-- Tone: casual, warm, like texting a Pakistani friend on WhatsApp
+APPROVED VOCABULARY:
+masla=problem | hal=solution | koshish=try | woh=they | log=people
+hukumat=government | mulk=country | baat=matter | mushkil=difficulty
+mil kar=together | umeedein=hopes | zaroorat=need | khayal=thought
+waqt=time | zyada=more | thoda=little | pakka=sure | kamyab=successful
+mehnat=hardwork | jawab=answer | sawal=question | shukriya=thanks
+banda=person | insaan=human | larai=conflict | sulah=peace
+muqami=local | bara=big | poori=all | kaam=work | khas=special
+laayak=worthy | lagta hai=it seems | amaan=safety | sukoon=calmness
+raasta=option/path | hosla=courage | dil=heart | yaar/bhai=friend
+achha=good | theek=fine | ittehad=unity | dono mulkon=both countries
 
-APPROVED ROMAN URDU VOCABULARY:
-  masla        = problem/issue
-  hal          = solution
-  koshish      = try/effort
-  woh          = he/she/they
-  log          = people
-  hukumat      = government
-  mulk         = country
-  baat         = talk/matter
-  mushkil      = difficulty
-  mil kar      = together
-  umeedein     = hopes
-  zaroorat     = need
-  khayal       = thought/opinion
-  waqt         = time
-  zyada        = more
-  thoda        = a little
-  pakka        = sure/confirmed
-  kamyab       = successful
-  mehnat       = hard work
-  jawab        = answer
-  sawal        = question
-  shukriya     = thank you
-  banda        = person/guy
-  insaan       = human
-  khoon        = blood
-  larai        = conflict/fight
-  sulah        = peace/settlement
-  guftagoo     = dialogue/conversation
-  muqami       = local
-  bara         = big/large
-  poori        = all/entire
-  kaam         = work/task
-  khas         = special
-  laayak       = worthy/capable
-  lagta hai    = it seems / I feel
-  mila         = received/got
-  amaan        = safety/peace
-  sukoon       = peace of mind
-  raasta       = path/option
-  hosla        = courage/morale
-  dil          = heart
-  yaar/bhai    = friend/buddy
-  achha        = good/okay
-  theek        = fine/correct
+STRICTLY BANNED HINDI WORDS → CORRECT REPLACEMENT:
+samasya→masla | vikalp→option/raasta | ekjut→mil kar | hove→ho/hoga
+samadhan→hal | sthaniya→muqami | surajit→theek | adhik→zyada
+na-kammi→kami | jatil→mushkil | ashaon→umeedein | manna→khayal
+ve→woh | vishesh→khas | adarsh→achi misaal | mehsus→lagta hai
+avashyak→zaroori | saari→poori | karya→kaam | badaa→bara
+prayaas→koshish | prapt→mila | nishchit→pakka | yogya→laayak
+uttar→jawab | prashn→sawal | dhanyavaad→shukriya | vyakti→banda
+parishram→mehnat | safal→kamyab | shanti→amaan/sukoon | ekta→ittehad
 
-STRICTLY BANNED HINDI WORDS — NEVER WRITE THESE:
-  samasya      → masla
-  vikalp       → option / raasta
-  ekjut        → mil kar / ikatha
-  hove         → ho / hoga
-  samadhan     → hal
-  sthaniya     → muqami / local
-  bhaavishyavani → andaza
-  surajit      → theek / behtar
-  adhik        → zyada
-  na-kammi     → kami
-  jatil        → mushkil
-  ashaon       → umeedein
-  manna        → khayal / sochna
-  ve           → woh
-  vishesh      → khas
-  adarsh       → achi misaal
-  mehsus       → lagta hai
-  avashyak     → zaroori
-  saari        → poori
-  karya        → kaam
-  badaa        → bara
-  prayaas      → koshish
-  prapt        → mila
-  nishchit     → pakka
-  yogya        → laayak
-  uttar        → jawab
-  prashn       → sawal
-  dhanyavaad   → shukriya
-  vyakti       → banda / insaan
-  parishram    → mehnat
-  safal        → kamyab
-  shanti       → amaan / sukoon
-  ekta         → ittehad
-  dono deshon  → dono mulkon
-  sunne ke liye taiyar → sunne ko taiyar
-
-GRAMMAR:
-  - Masculine/neutral address: kar rahe ho, puch rahe ho, aaye ho, soch rahe ho
-  - Short, natural sentences — no lecture paragraphs
-  - Mix short punchy lines with slightly longer explanations
+GRAMMAR: Masculine/neutral address. Short punchy natural sentences.
+NEVER use Urdu script. ONLY Latin letters.
 """
     elif language == "Roman Hindi":
-        return "Respond in natural conversational Roman Hindi using Latin script. Use everyday Hindustani vocabulary. Be warm and natural. Do not mix Urdu-specific words."
+        return "Respond in natural conversational Roman Hindi (Latin script). Everyday Hindustani. Warm and natural."
     elif language == "Urdu (اردو)":
-        return "صرف اردو رسم الخط میں جواب دیں۔ فصیح اور قدرتی اردو استعمال کریں۔ ہندی الفاظ سے مکمل گریز کریں۔"
+        return "صرف اردو رسم الخط میں جواب دیں۔ فصیح قدرتی اردو۔ ہندی الفاظ سے گریز۔"
     elif language == "Hindi (हिंदी)":
-        return "केवल हिंदी देवनागरी लिपि में जवाब दें। स्वाभाविक और सरल हिंदी उपयोग करें।"
+        return "केवल हिंदी देवनागरी लिपि में। स्वाभाविक सरल हिंदी।"
     else:
-        return f"STRICT: Respond entirely in {language}. Do not mix any other language."
+        return f"STRICT: Respond entirely in {language}."
 
 # ==========================================
-# TONE PERSONA BUILDER
+# TONE PERSONA
 # ==========================================
-def build_tone_persona(tone: str, last_user_msg: str) -> str:
-    if tone == "flirty":
-        return f"""
-USER TONE DETECTED: FLIRTY / PLAYFUL
-The user's message has a warm, playful, or slightly flirtatious energy (e.g., they called you "honey", "jaan", etc.).
+def build_tone_persona(tone: str) -> str:
+    personas = {
+        "flirty": """USER IS BEING PLAYFUL/FLIRTY (said "honey", "jaan", etc.)
+STYLE: Charming, warm, lightly playful — professional but with a smile.
+- Respond to their flirty energy naturally — don't ignore it, don't overdo it.
+- Ask warmly what's on their mind: "Acha ji, toh aaj kya plan hai?"
+- Classy, fun, engaging — never inappropriate.""",
 
-YOUR RESPONSE STYLE:
-1. Be charming, warm, and lightly playful — professional but with a smile.
-2. Respond to the flirty energy naturally — don't ignore it, don't overdo it.
-3. Show genuine interest in them: ask what brought them here, what's on their mind.
-4. Keep it classy — fun and engaging but never inappropriate.
-5. Use a warm, slightly teasing tone: "Acha ji, toh aaj kya kaam aa saktay hain hum?"
-"""
-    elif tone == "frustrated":
-        return f"""
-USER TONE DETECTED: FRUSTRATED / STRESSED
-The user seems frustrated, stuck, or overwhelmed.
+        "frustrated": """USER IS FRUSTRATED / STRESSED
+STYLE: Patient, supportive, like a calm friend who has your back.
+1. Acknowledge frustration first with genuine empathy.
+2. Give hosla — remind them this is fixable and they're not alone.
+3. Then gently ask what exactly is going wrong.""",
 
-YOUR RESPONSE STYLE:
-1. FIRST: Acknowledge their frustration with genuine empathy — don't jump to solutions immediately.
-2. Show that you understand how annoying/hard this feels.
-3. Give them hosla (encouragement): remind them this is fixable, they're not alone.
-4. Then calmly offer to help — ask what exactly is going wrong.
-5. Warm, patient, supportive tone — like a calm friend who has your back.
-"""
-    elif tone == "angry":
-        return f"""
-USER TONE DETECTED: ANGRY / VENTING
-The user is venting or expressing strong anger/frustration.
+        "angry": """USER IS ANGRY / VENTING
+STYLE: Calm, understanding — do NOT argue back.
+1. Validate their feelings immediately.
+2. Use tone: "Yaar sun — main samajhta hoon, yeh sach mein bura hai."
+3. After validation, steer gently toward what you can help with.""",
 
-YOUR RESPONSE STYLE:
-1. DO NOT argue back or get defensive.
-2. Let them vent — validate their feelings first.
-3. Use a calm, understanding tone: "Yaar, sun — main samajhta hoon, yeh sach mein bura situation hai."
-4. After validation, gently steer toward what can be done / how you can help.
-5. Never be dismissive. Never lecture them about being angry.
-"""
-    elif tone == "sad":
-        return f"""
-USER TONE DETECTED: SAD / LOW
-The user seems sad, down, or going through a hard time.
+        "sad": """USER IS SAD / DOWN
+STYLE: Deep warmth and empathy — make them feel heard.
+1. Do NOT rush to advice — sit with them emotionally first.
+2. "Yaar, yeh sun ke dil bhaari ho gaya — kya chal raha hai?"
+3. Show genuine concern. Offer to help however they need.""",
 
-YOUR RESPONSE STYLE:
-1. Lead with deep empathy and warmth — make them feel heard and not alone.
-2. Do NOT rush to advice or solutions — sit with them emotionally first.
-3. Use comforting language: "Yaar, yeh sun ke dil bhaari ho gaya — kya chal raha hai?"
-4. Show genuine concern and ask them to share more if they want.
-5. Offer to help in whatever way they need — whether it's just listening or solving a problem.
-"""
-    elif tone == "greeting":
-        return f"""
-USER TONE DETECTED: SIMPLE GREETING
-The user said a casual hello/greeting.
+        "greeting": """USER SAID A SIMPLE GREETING
+STYLE: Warm, natural, with personality.
+1. ONE greeting word only — NEVER stack "Hey! Hello! Hi there!"
+2. Show genuine warmth — not a robotic response.
+3. Ask naturally what's on their mind. MAX 2-3 sentences.""",
 
-YOUR RESPONSE STYLE:
-1. Reply with ONE warm, natural, unique greeting — do NOT repeat multiple greeting words.
-2. Show personality and warmth — not a robotic "How can I assist you today?"
-3. Ask what's on their mind today in a natural, engaging way.
-4. Keep it SHORT — 2 to 3 sentences maximum.
-5. NEVER use more than one greeting word (e.g., don't say "Hey! Hello! Hi there!").
-"""
-    elif tone == "curious":
-        return f"""
-USER TONE DETECTED: CURIOUS / INQUISITIVE
-The user is asking something they genuinely want to understand.
+        "curious": """USER IS CURIOUS / ASKING SOMETHING
+STYLE: Enthusiastic, engaged, clear.
+1. Match their curiosity — be genuinely interested.
+2. Give a clear, multi-angle, well-researched answer.
+3. Share your own perspective where relevant.""",
 
-YOUR RESPONSE STYLE:
-1. Match their curiosity — be genuinely engaged and enthusiastic.
-2. Give a clear, well-researched, multi-angle answer.
-3. Use simple relatable language — avoid jargon unless they ask for it.
-4. Where relevant, share your own perspective or opinion.
-5. End with an invitation to dig deeper if they want.
-"""
-    elif tone == "formal":
-        return f"""
-USER TONE DETECTED: FORMAL / PROFESSIONAL
-The user is writing in a formal or professional manner.
+        "formal": """USER IS WRITING FORMALLY
+STYLE: Professional, structured, respectful.
+1. Match their formal tone precisely.
+2. Be thorough but not verbose.
+3. Offer clear next steps.""",
 
-YOUR RESPONSE STYLE:
-1. Match their professional tone — structured, clear, respectful.
-2. Use proper language appropriate to the context.
-3. Be thorough and accurate without being overly verbose.
-4. Offer next steps or follow-up options at the end.
-"""
-    else:  # casual
-        return f"""
-USER TONE DETECTED: CASUAL / RELAXED
-The user is just having a normal, relaxed conversation.
-
-YOUR RESPONSE STYLE:
-1. Be natural, friendly, and conversational — like talking to a smart friend.
-2. Don't be overly formal or robotic.
-3. Match their energy — if they're being chill, be chill.
-4. Give solid, helpful responses without unnecessary fluff.
-"""
+        "casual": """USER IS RELAXED / CASUAL
+STYLE: Natural, friendly, conversational — like a smart friend.
+1. Match their chill energy.
+2. Helpful and warm without unnecessary fluff.""",
+    }
+    return personas.get(tone, personas["casual"])
 
 # ==========================================
 # GROQ ENGINE
 # ==========================================
 def call_groq_engine(client, messages, is_pro=False, image_b64=None):
-    primary_model = "llama-3.3-70b-versatile" if is_pro else "llama-3.1-8b-instant"
-    fallback_model = "llama-3.1-8b-instant"
-    vision_model = "llama-3.2-11b-vision-instruct"
+    primary = "llama-3.3-70b-versatile" if is_pro else "llama-3.1-8b-instant"
+    fallback = "llama-3.1-8b-instant"
+    vision  = "llama-3.2-11b-vision-instruct"
 
     if image_b64:
         try:
-            text_prompt = "\n".join([
-                m.get("content", "") for m in messages
-                if isinstance(m.get("content"), str)
-            ])
-            vision_messages = [{
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": text_prompt},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"}}
-                ]
-            }]
+            txt = "\n".join(m.get("content","") for m in messages if isinstance(m.get("content"),str))
             return client.chat.completions.create(
-                model=vision_model,
-                messages=vision_messages,
-                max_tokens=1200,
-                temperature=0.75
+                model=vision, max_tokens=1200, temperature=0.75,
+                messages=[{"role":"user","content":[
+                    {"type":"text","text":txt},
+                    {"type":"image_url","image_url":{"url":f"data:image/jpeg;base64,{image_b64}"}}
+                ]}]
             )
         except Exception:
             pass
 
-    kwargs = {
-        "messages": messages,
-        "temperature": 0.75,
-        "max_tokens": 1200,
-        "frequency_penalty": 0.25,
-        "presence_penalty": 0.45,
-    }
+    kwargs = dict(messages=messages, temperature=0.75, max_tokens=1200,
+                  frequency_penalty=0.25, presence_penalty=0.45)
     try:
-        return client.chat.completions.create(model=primary_model, **kwargs)
+        return client.chat.completions.create(model=primary, **kwargs)
     except Exception as e:
-        err = str(e).lower()
-        if "429" in err or "rate_limit" in err or "tokens" in err:
-            return client.chat.completions.create(model=fallback_model, **kwargs)
-        raise e
+        if any(x in str(e).lower() for x in ["429","rate_limit","tokens"]):
+            return client.chat.completions.create(model=fallback, **kwargs)
+        raise
 
-def generate_chat_title(first_user_msg: str) -> str:
-    effective_key = get_effective_api_key()
-    if not effective_key:
-        return "New Chat"
+def generate_chat_title(msg: str) -> str:
+    key = get_effective_api_key()
+    if not key: return "New Chat"
     try:
-        client = Groq(api_key=effective_key)
-        prompt = f"Summarize into a short 2-4 word chat title: '{first_user_msg[:150]}'"
-        completion = call_groq_engine(
-            client,
-            messages=[{"role": "user", "content": prompt}],
-            is_pro=st.session_state.is_pro
-        )
-        title = completion.choices[0].message.content.strip().replace('"', '')
-        return title[:25]
+        client = Groq(api_key=key)
+        c = call_groq_engine(client,
+            [{"role":"user","content":f"Summarize into 2-4 word title: '{msg[:120]}'"}],
+            is_pro=st.session_state.is_pro)
+        return c.choices[0].message.content.strip().replace('"','')[:25]
     except Exception:
-        cleaned = first_user_msg.strip().split("\n")[0]
-        return cleaned[:20] + "..." if len(cleaned) > 20 else cleaned
+        return msg.strip().split("\n")[0][:20]
 
 # ==========================================
 # AI RESPONSE ENGINE
 # ==========================================
-def get_ai_response(messages_history, active_mode, roast_level, language,
-                    active_file_type=None, active_file_data=None):
-    effective_key = get_effective_api_key()
-    if not effective_key:
-        return "⚠️ **Error:** GROQ_API_KEY missing hai! Please `.streamlit/secrets.toml` check karein."
-
+def get_ai_response(history, mode, roast_level, language, f_type=None, f_data=None):
+    key = get_effective_api_key()
+    if not key:
+        return "⚠️ **GROQ_API_KEY missing!** Please add it to `.streamlit/secrets.toml`."
     try:
-        client = Groq(api_key=effective_key)
+        client = Groq(api_key=key)
+        last_msg = next((m["content"].strip() for m in reversed(history) if m["role"]=="user"), "")
+        last_lower = last_msg.lower()
+        tone = detect_user_tone(last_lower)
+        tone_persona = build_tone_persona(tone)
+        lang_inst = build_language_instruction(language)
 
-        # Get last user message
-        last_user_msg = ""
-        for m in reversed(messages_history):
-            if m["role"] == "user":
-                last_user_msg = m["content"].strip()
-                break
-
-        last_lower = last_user_msg.lower()
-
-        # Detect tone
-        user_tone = detect_user_tone(last_lower)
-
-        # Build tone persona
-        tone_persona = build_tone_persona(user_tone, last_lower)
-
-        # Language instruction
-        lang_instruction = build_language_instruction(language)
-
-        # Bot capability check
-        is_asking_about_bot = any(w in last_lower for w in [
-            "tum kon ho", "tumhare kya feature", "tum kya kar sakte ho",
-            "features", "who are you", "what can you do", "kya kar sakte",
-            "kya ho tum", "batao apne baare"
+        bot_query = any(w in last_lower for w in [
+            "tum kon ho","features","who are you","what can you do","kya kar sakte","kya ho tum"
         ])
 
-        # ─── MODE: Versatile Assistant ───
-        if active_mode == "🌟 Versatile Assistant":
-            if is_asking_about_bot:
-                mode_persona = """
-YOU ARE AN ADVANCED MULTI-MODAL AI COMPANION.
-Explain your capabilities warmly and clearly:
-1. 💬 General Q&A, Discussions & Brainstorming
-2. 💻 Coding, Debugging & Architecture
-3. 📄 PDF & Image Analysis (Multimodal Vision)
+        # Mode persona
+        if mode == "🌟 Versatile Assistant":
+            if bot_query:
+                mode_p = """YOU ARE AN ADVANCED AI COMPANION. Explain capabilities warmly:
+1. 💬 General Q&A & Brainstorming
+2. 💻 Coding & Debugging
+3. 📄 PDF & Image Analysis
 4. 🔥 Savage Roasting Mode
-5. 🧠 Career Guidance & ATS Optimization
-6. 🌍 Political, Social & Research Analysis
-"""
+5. 🧠 Career & ATS Guidance
+6. 🌍 Political & Social Research"""
             else:
-                mode_persona = """
-YOU ARE AN ADVANCED, EMOTIONALLY INTELLIGENT AI ASSISTANT.
-- Give well-researched, nuanced, multi-angle responses.
-- For sensitive topics: show empathy FIRST, then give analysis.
-- Political/social topics: be balanced but have your own clear, reasoned opinion.
-- Share genuine perspective — don't just list neutral bullet points like Wikipedia.
-- Every response must feel human, warm, and thoughtful.
-"""
+                mode_p = """YOU ARE AN ADVANCED, EMOTIONALLY INTELLIGENT AI ASSISTANT.
+- Research-backed, nuanced, multi-angle responses.
+- Sensitive topics: empathy FIRST, then analysis.
+- Political topics: balanced but have your own clear reasoned opinion.
+- Every response must feel human, warm, and thoughtful."""
 
-        # ─── MODE: Career Expert ───
-        elif active_mode == "🧠 Career Expert":
-            mode_persona = """
-YOU ARE A PROFESSIONAL CAREER & ATS RESUME EXPERT.
-- Give structured, specific, research-backed career advice.
-- Cover ATS scoring, keyword optimization, interview prep, industry guidance.
-- Be direct and practical — no generic advice.
-- Show genuine interest in the user's career growth.
-"""
+        elif mode == "🧠 Career Expert":
+            mode_p = """YOU ARE A PROFESSIONAL CAREER & ATS RESUME EXPERT.
+- Structured, specific, research-backed advice.
+- ATS scoring, keyword optimization, interview prep.
+- Direct and practical. Show genuine interest in user's growth."""
 
-        # ─── MODE: Savage Roaster ───
-        else:
-            intensity_map = {
-                "Normal": "Funny, sarcastic, lighthearted.",
-                "Medium": "Sharp, brutally honest, witty.",
-                "Hard": "ULTIMATE SAVAGE — ruthlessly funny like a top stand-up comedian."
-            }
-
-            if user_tone == "greeting" and not active_file_data:
-                mode_persona = """
-YOU ARE A WITTY, HIGH-ENERGY DESI ROASTER.
-User said a casual greeting. No file attached.
-- Reply with ONE fun sarcastic greeting (no repeated greetings).
-- Ask what they want roasted in a funny, punchy way.
-- DO NOT write 'The Roast' or 'How to Fix It' sections.
-"""
-            elif active_file_data:
-                mode_persona = f"""
-YOU ARE AN AI ROASTER & CAREER CONSULTANT.
-Roast Level: {roast_level} — {intensity_map.get(roast_level)}
-A FILE IS ATTACHED. Structure:
-1. 🔥 **The Roast:** Witty, specific attack on actual weak points.
-2. 💡 **How to Fix It:** 2-3 clear, actionable improvement steps.
-"""
+        else:  # Savage Roaster
+            imap = {"Normal":"Funny, sarcastic, lighthearted.",
+                    "Medium":"Sharp, brutally honest, witty.",
+                    "Hard":"ULTIMATE SAVAGE — ruthlessly funny like a top comedian."}
+            if tone == "greeting" and not f_data:
+                mode_p = """WITTY HIGH-ENERGY DESI ROASTER.
+- ONE fun sarcastic greeting only.
+- Ask what they want roasted in a funny punchy way.
+- NO 'The Roast' or 'How to Fix It' sections."""
+            elif f_data:
+                mode_p = f"""AI ROASTER & CAREER CONSULTANT.
+Roast Level: {roast_level} — {imap.get(roast_level)}
+FILE ATTACHED:
+1. 🔥 The Roast: Witty specific attack on weak points.
+2. 💡 How to Fix It: 2-3 clear actionable steps."""
             else:
-                mode_persona = f"""
-YOU ARE A SAVAGE DESI ROASTER.
-Roast Level: {roast_level} — {intensity_map.get(roast_level)}
-Target: '{last_user_msg}'
+                mode_p = f"""SAVAGE DESI ROASTER.
+Roast Level: {roast_level} — {imap.get(roast_level)}
+Target: '{last_msg}'
 - Real savage roast — hilarious, punchy, original.
-- NO fake scripted dialogues (Trump: ... Tum: ...) — cringe hai.
-- NO 'How to Fix It' unless resume/code is actually given.
-- Find genuinely funny, specific angles. No generic insults.
-"""
+- NO fake scripted dialogues. NO 'How to Fix It' unless code/resume given.
+- Find genuinely funny specific angles."""
 
-        # Assemble final system prompt
-        system_prompt = f"""
-{mode_persona}
+        system_prompt = f"""{mode_p}
 
-=== TONE ADAPTATION ===
+=== TONE ===
 {tone_persona}
 
 === LANGUAGE ===
-{lang_instruction}
+{lang_inst}
 
-=== ANTI-REPETITION LAW — MANDATORY ===
-- EVERY sentence must add NEW information, angle, or perspective.
-- NEVER rephrase the same point in different words.
-- NEVER start with the same word you just used in the previous sentence.
-- For GREETINGS: use only ONE greeting word maximum — never stack "Hey! Hello! Hi there!".
-- Vary sentence length: mix short punchy lines with slightly longer explanations.
+=== ANTI-REPETITION LAW ===
+- Every sentence adds NEW information. NEVER rephrase the same point.
+- Greetings: ONE greeting word max. Never stack "Hey! Hello! Hi!"
+- Vary sentence length naturally.
 
 === NEUTRALITY ===
-- Do NOT open with religious greetings (Assalam, Namaste, etc.).
-- Be respectful and thoughtful on sensitive topics.
+Do NOT open with religious greetings (Assalam, Namaste, etc.).
 """
+        msgs = [{"role":"system","content":system_prompt}]
+        msgs += [{"role":m["role"],"content":m["content"]} for m in history[-6:]]
 
-        formatted_messages = [{"role": "system", "content": system_prompt}]
+        img_b64 = None
+        if f_type == "pdf":
+            msgs.append({"role":"system","content":f"ATTACHED PDF:\n{f_data}"})
+        elif f_type == "image":
+            img_b64 = f_data
 
-        # Add conversation history (last 6 exchanges)
-        for msg in messages_history[-6:]:
-            formatted_messages.append({"role": msg["role"], "content": msg["content"]})
-
-        # Inject file content
-        image_b64 = None
-        if active_file_type == "pdf":
-            formatted_messages.append({
-                "role": "system",
-                "content": f"ATTACHED PDF CONTENT:\n{active_file_data}"
-            })
-        elif active_file_type == "image":
-            image_b64 = active_file_data
-
-        completion = call_groq_engine(
-            client,
-            messages=formatted_messages,
-            is_pro=st.session_state.is_pro,
-            image_b64=image_b64
-        )
-        return completion.choices[0].message.content
-
+        c = call_groq_engine(client, msgs, is_pro=st.session_state.is_pro, image_b64=img_b64)
+        return c.choices[0].message.content
     except Exception as e:
-        return f"⚠️ **Error:** {str(e)}"
+        return f"⚠️ **Error:** {e}"
 
 def start_new_chat():
-    new_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    st.session_state.all_chats[new_id] = {"title": "New Chat", "messages": []}
-    st.session_state.current_chat_id = new_id
+    nid = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    st.session_state.all_chats[nid] = {"title":"New Chat","messages":[]}
+    st.session_state.current_chat_id = nid
 
-def delete_chat(chat_id):
-    del st.session_state.all_chats[chat_id]
-    if st.session_state.current_chat_id == chat_id:
+def delete_chat(cid):
+    del st.session_state.all_chats[cid]
+    if st.session_state.current_chat_id == cid:
         if st.session_state.all_chats:
             st.session_state.current_chat_id = list(st.session_state.all_chats.keys())[0]
         else:
             start_new_chat()
 
-current_id = st.session_state.current_chat_id
-current_chat = st.session_state.all_chats[current_id]
+cid = st.session_state.current_chat_id
+chat = st.session_state.all_chats[cid]
 
 # ==========================================
 # SIDEBAR
 # ==========================================
 with st.sidebar:
+    # Brand
     st.markdown("""
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;
-                    border-bottom:1px solid #30363D; padding-bottom:12px;">
-            <span style="font-size:1.6rem;">🤖</span>
-            <h3 style="margin:0; color:#FFFFFF; font-size:1.05rem; font-weight:700;">AI Companion</h3>
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon">🤖</div>
+            <p class="sidebar-brand-name">AI Companion</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # Status Badge
+    # Status
     if st.session_state.is_pro:
-        st.markdown("🔥 **Status:** <span style='background:#238636; color:#FFF; padding:2px 10px; border-radius:10px; font-size:0.73rem; font-weight:600;'>Pro Active</span>", unsafe_allow_html=True)
+        st.markdown('<div class="status-badge-pro">⚡ Pro Plan Active</div>', unsafe_allow_html=True)
     else:
-        st.markdown("🟢 **Status:** <span style='background:#1F6FEB; color:#FFF; padding:2px 10px; border-radius:10px; font-size:0.73rem; font-weight:600;'>Free Plan</span>", unsafe_allow_html=True)
-
+        st.markdown('<div class="status-badge-free">🟢 Free Plan</div>', unsafe_allow_html=True)
         st.markdown("""
-            <div style="background:#0D1117; border:1px solid #30363D; border-radius:9px; padding:11px; margin:10px 0;">
-                <p style="margin:0 0 7px 0; font-size:0.79rem; color:#8B949E;">Faster models & priority access.</p>
-                <a href="https://airoaster.lemonsqueezy.com/checkout/buy/ec7ff9c8-e11c-4102-aa52-3f5884f8fb2c"
-                   target="_blank" style="text-decoration:none;">
-                    <button style="width:100%; background:#238636; color:#FFF; border:none; padding:7px;
-                                   border-radius:7px; cursor:pointer; font-weight:700; font-size:0.84rem;">
-                        ⚡ Upgrade to Pro ($6)
-                    </button>
+            <div class="upgrade-box">
+                <p>Unlock faster models & priority AI access.</p>
+                <a class="upgrade-btn" href="https://airoaster.lemonsqueezy.com/checkout/buy/ec7ff9c8-e11c-4102-aa52-3f5884f8fb2c" target="_blank">
+                    ⚡ Upgrade to Pro — $6
                 </a>
             </div>
         """, unsafe_allow_html=True)
 
         with st.expander("🔑 Activate License"):
-            license_input = st.text_input("License Key:", type="password", key="license_key_input")
+            lic = st.text_input("License Key:", type="password", key="lic_key")
             if st.button("✅ Activate Pro", use_container_width=True):
-                if license_input:
-                    valid, msg = verify_lemonsqueezy_license(license_input)
-                    if valid:
-                        st.session_state.is_pro = True
-                        st.success("Pro Activated!")
-                        st.rerun()
+                if lic:
+                    ok, msg = verify_lemonsqueezy_license(lic)
+                    if ok:
+                        st.session_state.is_pro = True; st.rerun()
                     else:
                         st.error(msg)
                 else:
-                    st.warning("Please enter your license key.")
+                    st.warning("Enter your license key.")
 
-    # Developer Access
     with st.expander("🛠️ Developer Access"):
         if st.session_state.is_pro:
-            st.info("⚡ **Dev Pro Mode** is active.")
+            st.info("⚡ Dev Pro Mode is active.")
             if st.button("🔴 Deactivate", use_container_width=True):
-                st.session_state.is_pro = False
-                st.success("Switched to Free Mode!")
-                st.rerun()
+                st.session_state.is_pro = False; st.rerun()
         else:
-            entered_key = st.text_input("Secret Key:", type="password", key="dev_key_input")
+            dk = st.text_input("Secret Key:", type="password", key="dev_k")
             if st.button("🔓 Activate Dev Pro", use_container_width=True):
-                dev_secret = None
+                ds = None
                 try:
-                    if "DEV_SECRET_KEY" in st.secrets and st.secrets["DEV_SECRET_KEY"]:
-                        dev_secret = st.secrets["DEV_SECRET_KEY"]
+                    ds = st.secrets.get("DEV_SECRET_KEY","") or None
                 except Exception:
                     pass
-                if not dev_secret:
-                    st.error("❌ DEV_SECRET_KEY not configured in secrets!")
-                elif entered_key == dev_secret:
-                    st.session_state.is_pro = True
-                    st.success("🎉 Dev Pro Activated!")
-                    st.rerun()
+                if not ds:
+                    st.error("DEV_SECRET_KEY not configured.")
+                elif dk == ds:
+                    st.session_state.is_pro = True; st.rerun()
                 else:
-                    st.error("❌ Invalid Secret Key!")
+                    st.error("❌ Invalid key.")
 
     st.markdown("---")
+    language = st.selectbox("🌐 Language:",
+        ["Roman Urdu","Roman Hindi","English","Urdu (اردو)","Hindi (हिंदी)",
+         "Spanish","French","German","Arabic","Turkish"])
 
-    language = st.selectbox(
-        "🌐 Language:",
-        ["Roman Urdu", "Roman Hindi", "English", "Urdu (اردو)",
-         "Hindi (हिंदी)", "Spanish", "French", "German", "Arabic", "Turkish"]
-    )
-
-    active_mode = st.radio(
-        "🎯 AI Mode:",
-        ["🌟 Versatile Assistant", "🔥 Savage Roaster", "🧠 Career Expert"]
-    )
+    active_mode = st.radio("🎯 AI Mode:",
+        ["🌟 Versatile Assistant","🔥 Savage Roaster","🧠 Career Expert"])
 
     roast_level = "Medium"
     if active_mode == "🔥 Savage Roaster":
-        roast_level = st.select_slider(
-            "🔥 Roast Intensity:",
-            options=["Normal", "Medium", "Hard"],
-            value="Medium"
-        )
+        roast_level = st.select_slider("🔥 Intensity:",
+            options=["Normal","Medium","Hard"], value="Medium")
 
     st.markdown("---")
     if st.button("➕ New Chat", use_container_width=True):
-        start_new_chat()
-        st.rerun()
+        start_new_chat(); st.rerun()
 
-    st.markdown("<p style='margin:10px 0 5px 0; color:#8B949E; font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;'>Recent Chats</p>", unsafe_allow_html=True)
+    st.markdown('<p class="section-label">Recent Chats</p>', unsafe_allow_html=True)
     for c_id in list(st.session_state.all_chats.keys())[::-1]:
-        chat_info = st.session_state.all_chats[c_id]
-        col_btn, col_del = st.columns([4.2, 0.8])
-        prefix = "💬 " if c_id == st.session_state.current_chat_id else ""
-        if col_btn.button(f"{prefix}{chat_info['title']}", key=f"btn_{c_id}", use_container_width=True):
-            st.session_state.current_chat_id = c_id
-            st.rerun()
-        if col_del.button("🗑️", key=f"del_{c_id}"):
-            delete_chat(c_id)
-            st.rerun()
+        info = st.session_state.all_chats[c_id]
+        cb, cd = st.columns([4.2, 0.8])
+        pfx = "💬 " if c_id == st.session_state.current_chat_id else ""
+        if cb.button(f"{pfx}{info['title']}", key=f"b_{c_id}", use_container_width=True):
+            st.session_state.current_chat_id = c_id; st.rerun()
+        if cd.button("🗑️", key=f"d_{c_id}"):
+            delete_chat(c_id); st.rerun()
 
 # ==========================================
 # MAIN INTERFACE
 # ==========================================
+
+# Hero Header
 st.markdown("""
-    <div class='brand-header'>
-        <h1 class='brand-title'>Advanced AI Companion</h1>
-        <p class='brand-subtitle'>Chat casually, ask anything, generate code, or attach PDF/Image for smart analysis.</p>
+    <div class="hero-wrap">
+        <div class="hero-badge">✦ Powered by Groq &amp; Llama 3</div>
+        <h1 class="hero-title">Advanced AI Companion</h1>
+        <p class="hero-sub">Chat casually · Generate code · Analyze PDF &amp; Images · Get career advice</p>
     </div>
 """, unsafe_allow_html=True)
 
-# Welcome cards (only when no messages)
-if not current_chat["messages"]:
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("""
-            <div class='mode-card'>
-                <h4>🌟 Versatile Assistant</h4>
-                <p>Ask anything, code, write, brainstorm, or just have a smart conversation.</p>
+# Welcome Cards
+if not chat["messages"]:
+    st.markdown("""
+        <div class="cards-grid">
+            <div class="mode-card">
+                <span class="card-icon">🌟</span>
+                <p class="card-title">Versatile Assistant</p>
+                <p class="card-desc">Ask anything, code, write, brainstorm, or just have a smart conversation.</p>
             </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown("""
-            <div class='mode-card'>
-                <h4>🔥 Savage Roaster</h4>
-                <p>Upload your resume or topic for sharp, witty roasts + real solutions.</p>
+            <div class="mode-card">
+                <span class="card-icon">🔥</span>
+                <p class="card-title">Savage Roaster</p>
+                <p class="card-desc">Upload your resume or pick a topic for sharp, witty roasts + real solutions.</p>
             </div>
-        """, unsafe_allow_html=True)
-    with col3:
-        st.markdown("""
-            <div class='mode-card'>
-                <h4>🧠 Career Expert</h4>
-                <p>ATS scoring, interview prep, and professional career strategy advice.</p>
+            <div class="mode-card">
+                <span class="card-icon">🧠</span>
+                <p class="card-title">Career Expert</p>
+                <p class="card-desc">ATS scoring, interview prep, and professional career strategy advice.</p>
             </div>
-        """, unsafe_allow_html=True)
+        </div>
+    """, unsafe_allow_html=True)
 
-# Render chat history
-for message in current_chat["messages"]:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+# Chat History
+for m in chat["messages"]:
+    with st.chat_message(m["role"]):
+        st.markdown(m["content"])
 
 # ==========================================
-# CHAT INPUT — SINGLE PILL WITH ATTACHMENT
+# CHAT INPUT
 # ==========================================
-chat_input_data = st.chat_input(
-    f"Type a message... ({active_mode})",
+inp = st.chat_input(
+    f"Message {active_mode}...",
     accept_file=True,
-    file_type=["pdf", "png", "jpg", "jpeg", "webp"]
+    file_type=["pdf","png","jpg","jpeg","webp"]
 )
 
-if chat_input_data:
-    prompt_text = chat_input_data.get("text", "")
-    uploaded_files = chat_input_data.get("files", [])
+if inp:
+    txt = inp.get("text","")
+    files = inp.get("files",[])
 
-    current_f_type = None
-    current_f_data = None
-    user_display_msg = prompt_text
+    cf_type = cf_data = None
+    display = txt
 
-    if uploaded_files:
-        attached_file = uploaded_files[0]
-        f_type, f_data = process_uploaded_file(attached_file)
-        if f_type != "error":
-            current_f_type = f_type
-            current_f_data = f_data
-            file_name = attached_file.name
-            user_display_msg = (
-                f"📎 **[Attached: {file_name}]**\n\n{prompt_text}"
-                if prompt_text else
-                f"📎 **[Attached: {file_name}]**\nPlease evaluate my attached file."
-            )
+    if files:
+        ft, fd = process_uploaded_file(files[0])
+        if ft != "error":
+            cf_type, cf_data = ft, fd
+            fn = files[0].name
+            display = f"📎 **[{fn}]**\n\n{txt}" if txt else f"📎 **[{fn}]**\nPlease evaluate my attached file."
         else:
-            st.error(f_data)
+            st.error(fd)
 
-    if user_display_msg or current_f_type:
-        # Auto-generate title on first message
-        sample_text = prompt_text if prompt_text else "Conversation"
-        if not current_chat["messages"] or current_chat["title"] == "New Chat":
-            current_chat["title"] = generate_chat_title(sample_text)
+    if display or cf_type:
+        stxt = txt if txt else "Conversation"
+        if not chat["messages"] or chat["title"] == "New Chat":
+            chat["title"] = generate_chat_title(stxt)
 
-        # Show user message
-        st.chat_message("user").markdown(user_display_msg)
-        current_chat["messages"].append({"role": "user", "content": user_display_msg})
+        st.chat_message("user").markdown(display)
+        chat["messages"].append({"role":"user","content":display})
 
-        # Generate and show AI response
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                response = get_ai_response(
-                    current_chat["messages"],
-                    active_mode,
-                    roast_level,
-                    language,
-                    active_file_type=current_f_type,
-                    active_file_data=current_f_data
-                )
-                st.markdown(response)
-                current_chat["messages"].append({"role": "assistant", "content": response})
+                resp = get_ai_response(chat["messages"], active_mode, roast_level,
+                                       language, f_type=cf_type, f_data=cf_data)
+                st.markdown(resp)
+                chat["messages"].append({"role":"assistant","content":resp})
