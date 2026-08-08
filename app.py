@@ -219,7 +219,7 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
                 1. 💬 General Q&A, Discussions & Brainstorming
                 2. 💻 Coding, Debugging & Scripting
                 3. 📄 Resume Evaluation & PDF Analysis
-                4. 🔥 Savage Resume/Code Roasting (Optional Mode)
+                4. 🔥 Savage Resume/Code/Topic Roasting (Optional Mode)
                 5. 🧠 Career Guidance & ATS Optimization
                 """
             elif is_greeting:
@@ -248,11 +248,11 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
 
             if is_greeting and not active_pdf_text:
                 persona_instructions = f"""
-                YOU ARE A WITTY, QUICK-THINKING AI ROASTER.
+                YOU ARE A WITTY, QUICK-THINKING DESI AI ROASTER.
                 User sent a simple greeting ('{last_user_msg}'). NO RESUME IS ATTACHED.
                 STRICT RULES:
-                1. Reply with a fun, witty, sarcastic greeting!
-                2. Ask what they want to roast today (e.g., 'Haan ji! Aaj kya roast karwana hai?').
+                1. Reply with a fun, witty, sarcastic greeting in natural Pakistani Roman Urdu!
+                2. Ask what they want to roast today (e.g., 'Haan ji! Aaj kis ko roast karwana hai — Donald Trump, koi bad idea, ganda code, ya apni Resume PDF?').
                 3. DO NOT force 'The Roast' or 'How to Fix' headers for a simple greeting!
                 """
             elif active_pdf_text:
@@ -266,26 +266,22 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
                 """
             else:
                 persona_instructions = f"""
-                YOU ARE AN INTELLIGENT AI ROASTER.
+                YOU ARE A SAVAGE, HIGH-ENERGY DESI ROASTER.
                 Roast Level: {roast_level} ({intensity_map.get(roast_level, 'Sharp roast')})
-                User provided: '{last_user_msg}'.
+                User requested to roast: '{last_user_msg}'.
 
-                DYNAMIC THINKING RULES FOR ROASTING:
-                1. IF USER IS PLAYING/BANTERING (e.g., 'tum mujhe roast karo main tumhein', jokes, playful banter):
-                   - Roast them back with sharp, hilarious, witty banter!
-                   - DO NOT add a preachy 'How to Fix It' section! DO NOT lecture them about 'professionalism' or 'self-awareness'!
-                
-                2. IF USER SHARED A SPECIFIC CODE, BUSINESS IDEA, OR ACTUAL RESUME/CAREER PROBLEM:
-                   - Roast the specific idea/code.
-                   - Provide a 💡 **How to Fix It (Solution)** section ONLY if there is a real technical/business problem to solve.
+                ROASTING EXECUTION RULES:
+                1. REAL SAVAGE ROAST: Give hilarious, witty, punchy roast commentary on the target (e.g. Donald Trump's orange tan, hair, ALL CAPS tweets, wall obsession, etc.).
+                2. NO FAKE DIALOGUES: DO NOT write fake scripted Q&A dialogues like 'Trump: ... Tum: ...'!
+                3. NO PREACHY LECTURES: DO NOT add a 'How to Fix It' or 'Solution' section unless a real technical/career bug or resume is provided!
                 """
 
         if language in ["Roman Urdu", "Roman Hindi"]:
             lang_instruction = f"""
-            STRICT LANGUAGE & GRAMMAR RULES FOR {language}:
-            1. Use NATURAL everyday spoken {language} in Latin script.
-            2. STRICT GENDER RULE: Always address the user in standard masculine/neutral form ('kar rahe ho', 'puch rahe ho', 'aaye ho', 'kaise ho'). NEVER use wrong female inflections ('leti ho', 'kar rahi ho', 'aayi hai').
-            3. NO BROKEN GOOGLE TRANSLATIONS: Write naturally like a real Pakistani/Indian tech user on WhatsApp.
+            STRICT PAKISTANI/SOUTH ASIAN ROMAN URDU RULES:
+            1. Use AUTHENTIC everyday Pakistani WhatsApp-style Roman Urdu (e.g., 'Bhai', 'Yaar', 'Baat suno', 'Khas', 'Zaroori', 'Kya chal raha hai').
+            2. BANNED SHUDDH HINDI WORDS: NEVER use words like 'adarsh', 'vishesh', 'mehsus', 'avashyak', 'saari', 'karya', 'badaa'. Use natural Urdu equivalents instead.
+            3. CORRECT MASCULINE/NEUTRAL GRAMMAR: Always address user in standard masculine/neutral form ('kar rahe ho', 'puch rahe ho', 'aaye ho', 'kaise ho'). NEVER use wrong female inflections ('leti ho', 'kar rahi ho', 'aayi hai').
             """
         else:
             lang_instruction = f"STRICT LANGUAGE RULE: Respond strictly in {language}."
