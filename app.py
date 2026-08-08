@@ -23,7 +23,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ⚡ PERFECT EQUAL CARD SIZING & UNIFIED CHAT BAR STYLING
+# ⚡ CLEAN CHATGPT / GEMINI OFFICIAL STYLING
 st.markdown("""
 <style>
     /* Dark Theme Core */
@@ -42,7 +42,7 @@ st.markdown("""
     .block-container {
         padding-top: 1.5rem !important;
         padding-bottom: 6rem !important;
-        max-width: 920px !important;
+        max-width: 900px !important;
         margin: 0 auto;
     }
 
@@ -69,8 +69,8 @@ st.markdown("""
         background-color: #161B22 !important;
         border: 1px solid #30363D !important;
         border-radius: 12px;
-        padding: 16px;
-        min-height: 145px !important;
+        padding: 18px;
+        min-height: 140px !important;
         display: flex !important;
         flex-direction: column !important;
         justify-content: flex-start !important;
@@ -85,9 +85,6 @@ st.markdown("""
         font-size: 1rem !important;
         font-weight: 700;
         margin: 0 0 6px 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
     
     .mode-card p {
@@ -97,53 +94,19 @@ st.markdown("""
         line-height: 1.4;
     }
 
-    /* File Uploader styling inside Chat Bar Row */
-    [data-testid="stFileUploader"] {
-        background: transparent !important;
-        border: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    [data-testid="stFileUploader"] label {
-        display: none !important;
-    }
-    [data-testid="stFileUploader"] section {
-        background: transparent !important;
-        border: none !important;
-        padding: 0 !important;
-    }
-    [data-testid="stFileUploader"] button {
-        background-color: #21262D !important;
-        color: #58A6FF !important;
+    /* Clean Expander / Popover for File Attachment */
+    [data-testid="stExpander"] {
+        background-color: #161B22 !important;
         border: 1px solid #30363D !important;
-        border-radius: 20px !important;
-        padding: 6px 14px !important;
-        font-weight: 600 !important;
-        font-size: 0.85rem !important;
-        height: 42px !important;
-        margin-top: 10px !important;
+        border-radius: 10px !important;
+        margin-bottom: 10px !important;
     }
 
-    /* Chat Input Bar styling */
+    /* Clean Chat Input Bar */
     div[data-testid="stChatInput"] {
         background-color: #161B22 !important;
         border: 1px solid #30363D !important;
-        border-radius: 28px !important;
-    }
-
-    /* Attached File Badge floating above Chat Bar */
-    .attached-file-badge {
-        background-color: #1F6FEB22;
-        border: 1px solid #1F6FEB;
-        color: #58A6FF;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.82rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 8px;
+        border-radius: 24px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -307,7 +270,7 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
         is_greeting = (last_user_msg in greetings_list) or (len(words) <= 3 and any(g in last_user_msg for g in ["hi", "hello", "hey", "salam", "kaise", "haal"]))
         is_asking_about_bot = any(w in last_user_msg for w in ["tum kon ho", "tumhare kya feature", "tum kya kar sakte ho", "features", "who are you", "what can you do"])
 
-        if active_mode == "🌟 Versatile AI Companion":
+        if active_mode == "🌟 Versatile Assistant":
             if is_asking_about_bot:
                 persona_instructions = """
                 YOU ARE AN ADVANCED MULTI-MODAL AI COMPANION (LIKE CHATGPT & GEMINI).
@@ -329,13 +292,13 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
                 Respond intelligently, helpfully, and accurately to any user request (Coding, Q&A, Writing, Image Analysis, etc.).
                 """
 
-        elif active_mode == "🧠 Career & ATS Expert":
+        elif active_mode == "🧠 Career Expert":
             persona_instructions = """
             YOU ARE A PROFESSIONAL CAREER & ATS RESUME EXPERT.
             - Provide structured, professional advice, ATS resume scoring tips, and constructive recommendations.
             """
 
-        else: # 🔥 Savage Roast Mode
+        else: # 🔥 Savage Roaster Mode
             intensity_map = {
                 "Normal": "Funny, sarcastic, lighthearted banter.",
                 "Medium": "Sharp, brutally honest, witty roast.",
@@ -510,11 +473,11 @@ with st.sidebar:
     st.markdown("---")
     active_mode = st.radio(
         "AI MODE:", 
-        ["🌟 Versatile AI Companion", "🔥 Savage Roast Mode", "🧠 Career & ATS Expert"]
+        ["🌟 Versatile Assistant", "🔥 Savage Roaster", "🧠 Career Expert"]
     )
 
     roast_level = "Medium"
-    if active_mode == "🔥 Savage Roast Mode":
+    if active_mode == "🔥 Savage Roaster":
         roast_level = st.select_slider("ROAST INTENSITY:", options=["Normal", "Medium", "Hard"], value="Medium")
 
     st.markdown("---")
@@ -563,7 +526,7 @@ if not current_chat["messages"]:
     with col3:
         st.markdown("""
             <div class='mode-card'>
-                <h4>🧠 Career & ATS Expert</h4>
+                <h4>🧠 Career Expert</h4>
                 <p>Get ATS breakdowns, interview prep, and professional career advice.</p>
             </div>
         """, unsafe_allow_html=True)
@@ -573,15 +536,14 @@ for message in current_chat["messages"]:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Attachment Badge if file is attached
+# Attached File Badge directly above Chat Bar
 if st.session_state.attached_file_name:
-    st.markdown(f"<div class='attached-file-badge'>📄 Attached: <b>{st.session_state.attached_file_name}</b></div>", unsafe_allow_html=True)
+    st.info(f"📄 **Attached File Ready:** `{st.session_state.attached_file_name}` (Send your prompt to analyze)")
 
-# 📎 UNIFIED SINGLE ROW CHAT BAR AT BOTTOM
-col_file, col_input = st.columns([1.6, 8.4])
-with col_file:
+# 📎 CLEAN FILE ATTACHMENT BAR (Directly above Chat Input)
+with st.expander("📎 Attach PDF or Image File (Optional)", expanded=False):
     uploaded_file = st.file_uploader(
-        "📎 Upload File",
+        "Upload PDF Resume, Code Screenshot, or Image",
         type=["pdf", "png", "jpg", "jpeg", "webp"],
         key="main_attachment_input"
     )
@@ -591,9 +553,11 @@ with col_file:
             st.session_state.attached_file_type = f_type
             st.session_state.attached_file_data = f_data
             st.session_state.attached_file_name = uploaded_file.name
+            st.success(f"✅ Loaded: {uploaded_file.name}")
+            st.rerun()
 
-with col_input:
-    prompt_text = st.chat_input(f"Type a message... ({active_mode})")
+# 💬 FULL-WIDTH CLEAN CHAT INPUT BAR (ChatGPT/Gemini Style)
+prompt_text = st.chat_input(f"Type a message... ({active_mode})")
 
 if prompt_text or st.session_state.attached_file_data:
     user_text = prompt_text if prompt_text else "Please evaluate my attached document/file."
