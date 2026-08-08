@@ -205,6 +205,16 @@ def get_ai_response(messages_history, active_mode, roast_level, language):
     try:
         client = Groq(api_key=effective_key)
 
+        # Detect simple greetings to avoid cringe long intros
+        last_user_msg = ""
+        for m in reversed(messages_history):
+            if m["role"] == "user":
+                last_user_msg = m["content"].strip().lower()
+                break
+
+        simple_greetings = ["hi", "hello", "hey", "hy", "hlo", "assalamoalaikum", "salam", "kya haal hai", "kaise ho", "kya hal hai"]
+        is_simple_greeting = last_user_msg in simple_greetings
+
         if active_mode == "🧠 Thinking & Career Assistant":
             persona_instructions = """
             YOU ARE A HIGHLY PROFESSIONAL CAREER & ATS RESUME EXPERT.
@@ -217,23 +227,34 @@ def get_ai_response(messages_history, active_mode, roast_level, language):
                 "Medium": "Sharp, brutally honest, witty roast.",
                 "Hard": "ULTIMATE SAVAGE ROAST! Ruthlessly target weak points, buzzwords, and experience gaps."
             }
-            persona_instructions = f"""
-            YOU ARE AN UNFILTERED, HILARIOUS, AND WITTY AI ROASTER.
-            Roast Level: {roast_level} ({intensity_map.get(roast_level, 'Sharp roast')})
 
-            RULES FOR ROASTING:
-            1. PUNCHY & CONCISE: Keep response between 120-250 words max. Never write boring walls of text.
-            2. TARGET SPECIFIC DETAILS: Read the user's text or resume carefully and roast specific skills, projects, gaps, or buzzwords.
-            3. NO REPETITION: Do NOT repeat previous jokes, phrases, or greetings.
-            4. QUICK BANTER: If user just says 'Hi/Hello', give a quick 2-line sarcastic greeting.
-            """
+            if is_simple_greeting:
+                persona_instructions = f"""
+                YOU ARE A WITTY, QUICK-THINKING AI ROASTER.
+                User said a simple greeting ('{last_user_msg}').
+                STRICT RULE: Reply with ONE short, punchy 1-line sarcastic greeting in natural spoken style. 
+                Do NOT write long intros, do NOT write cringe robotic scripts, and do NOT write walls of text.
+                Example: 'Haan bhai, bolo! Resume roast karwana hai ya waise hi timepass kar rahe ho?'
+                """
+            else:
+                persona_instructions = f"""
+                YOU ARE AN UNFILTERED, HILARIOUS, AND WITTY AI ROASTER.
+                Roast Level: {roast_level} ({intensity_map.get(roast_level, 'Sharp roast')})
+
+                RULES FOR ROASTING:
+                1. PUNCHY & CONCISE: Keep response between 100-200 words max.
+                2. TARGET SPECIFIC DETAILS: Read the user's text or resume carefully and roast specific skills, projects, gaps, or buzzwords.
+                3. NO REPETITION: Do NOT repeat previous jokes, phrases, or greetings.
+                """
 
         if language in ["Roman Urdu", "Roman Hindi"]:
-            lang_instruction = (
-                f"STRICT LANGUAGE RULE: Respond EXCLUSIVELY in {language} (Latin/English script). "
-                f"Example: 'Aapki resume dekh kar lagta hai aap ne MS Word ke saare templates try kar liye hain.' "
-                f"DO NOT write in English sentences or Urdu/Hindi scripts."
-            )
+            lang_instruction = f"""
+            STRICT LANGUAGE & GRAMMAR RULES FOR {language}:
+            1. Use NATURAL, authentic everyday spoken {language} in Latin script (e.g., 'Bhai, resume hai ya shopping list?').
+            2. CORRECT GENDER & GRAMMAR: Use standard second-person masculine/neutral forms (e.g., 'aaye ho', 'kar rahe ho', 'dekh rahe ho'). NEVER use wrong female inflections like 'aayi hai' or broken Google-translated Urdu.
+            3. NO BROKEN TRANSLATIONS: Write like a real native Pakistani/Indian speaker chatting on WhatsApp.
+            4. NO ENGLISH SENTENCES: Write completely in {language}.
+            """
         else:
             lang_instruction = f"STRICT LANGUAGE RULE: Respond strictly in {language}."
 
@@ -243,13 +264,13 @@ def get_ai_response(messages_history, active_mode, roast_level, language):
         STRICT NEUTRALITY: Do NOT use religious greetings (e.g., Namaste, Salaam, etc.).
         """
 
-        formatted_messages = [{"role": "system", "content": system_persona}] + messages_history[-6:]  # Keeps context fresh
+        formatted_messages = [{"role": "system", "content": system_persona}] + messages_history[-6:]
 
         completion = call_groq_with_fallback(
             client,
             messages=formatted_messages,
-            temperature=0.85 if active_mode == "🔥 Savage Roast Mode" else 0.3,
-            max_tokens=900,
+            temperature=0.7 if is_simple_greeting else (0.85 if active_mode == "🔥 Savage Roast Mode" else 0.3),
+            max_tokens=800,
             is_pro=st.session_state.is_pro
         )
         return completion.choices[0].message.content
