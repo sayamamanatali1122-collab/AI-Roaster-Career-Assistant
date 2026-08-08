@@ -23,7 +23,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ⚡ CLEAN CHATGPT / GEMINI OFFICIAL STYLING
+# ⚡ SINGLE CLEAN BORDER & PERFECT PILL CHAT INPUT STYLING
 st.markdown("""
 <style>
     /* Dark Theme Core */
@@ -94,14 +94,26 @@ st.markdown("""
         line-height: 1.4;
     }
 
-    /* Clean Chat Input Bar styling */
+    /* STRICT SINGLE CLEAN BORDER FOR CHAT INPUT (NO DOUBLE GREEN/BLUE BORDERS) */
     div[data-testid="stChatInput"] {
         background-color: #161B22 !important;
         border: 1px solid #30363D !important;
-        border-radius: 28px !important;
+        border-radius: 24px !important;
+        outline: none !important;
+        box-shadow: none !important;
     }
+
+    /* Remove inner border overlaps */
+    div[data-testid="stChatInput"] * {
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Single Subtle Focus Ring */
     div[data-testid="stChatInput"]:focus-within {
-        border-color: #58A6FF !important;
+        border: 1px solid #58A6FF !important;
+        box-shadow: 0 0 8px rgba(88, 166, 255, 0.2) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -521,7 +533,7 @@ for message in current_chat["messages"]:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 💬 NATIVE INTEGRATED CHAT INPUT BAR WITH ATTACHMENT ICON (ChatGPT/Gemini Style)
+# 💬 NATIVE CHAT INPUT WITH '+' ATTACHMENT ICON INSIDE
 chat_input_data = st.chat_input(
     f"Type a message... ({active_mode})",
     accept_file=True,
@@ -546,8 +558,9 @@ if chat_input_data:
             user_display_msg = f"📎 **[Attached File: {file_name}]**\n\n{prompt_text}" if prompt_text else f"📎 **[Attached File: {file_name}]**\nPlease evaluate my attached file."
 
     # Auto Title Generator
+    sample_text = prompt_text if prompt_text else "Conversation"
     if not current_chat["messages"] or current_chat["title"] == "New Chat":
-        current_chat["title"] = generate_chat_title(user_text if 'user_text' in locals() else prompt_text)
+        current_chat["title"] = generate_chat_title(sample_text)
 
     st.chat_message("user").markdown(user_display_msg)
     current_chat["messages"].append({"role": "user", "content": user_display_msg})
