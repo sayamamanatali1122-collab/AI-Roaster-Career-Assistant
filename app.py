@@ -199,15 +199,18 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
     try:
         client = Groq(api_key=effective_key)
 
-        # Detect intent
+        # Detect last user message intent
         last_user_msg = ""
         for m in reversed(messages_history):
             if m["role"] == "user":
                 last_user_msg = m["content"].strip().lower()
                 break
 
-        greetings_list = ["hi", "hello", "hey", "hy", "hlo", "assalamoalaikum", "salam", "kya haal hai", "kaise ho", "good morning", "good evening"]
-        is_greeting = last_user_msg in greetings_list
+        greetings_list = ["hi", "hello", "hey", "hy", "hlo", "assalamoalaikum", "salam", "kya haal hai", "kaise ho", "aao kaise ho", "good morning", "good evening"]
+        
+        # Check if user message is short greeting
+        words = last_user_msg.split()
+        is_greeting = (last_user_msg in greetings_list) or (len(words) <= 3 and any(g in last_user_msg for g in ["hi", "hello", "hey", "salam", "kaise", "haal"]))
         is_asking_about_bot = any(w in last_user_msg for w in ["tum kon ho", "tumhare kya feature", "tum kya kar sakte ho", "features", "who are you", "what can you do"])
 
         if active_mode == "🌟 Versatile AI Companion":
@@ -224,34 +227,55 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
             elif is_greeting:
                 persona_instructions = """
                 YOU ARE A WARM, INTELLIGENT, AND FRIENDLY ADVANCED AI COMPANION.
-                Greet the user warmly, politely, and naturally. Ask how you can assist them today with coding, questions, or career analysis.
+                Greet the user warmly, politely, and naturally. Ask how you can assist them today.
                 """
             else:
                 persona_instructions = """
-                YOU ARE AN ADVANCED, HIGHLY CAPABLE AI ASSISTANT (LIKE CHATGPT & GEMINI).
-                - Respond intelligently, helpfully, and accurately to any request (Coding, Writing, Analysis, Q&A).
-                - Maintain a helpful, smart, and friendly tone.
+                YOU ARE AN ADVANCED AI ASSISTANT (LIKE CHATGPT & GEMINI).
+                Respond intelligently, helpfully, and accurately to any user request (Coding, Q&A, Writing, etc.).
                 """
+
         elif active_mode == "🧠 Career & ATS Expert":
             persona_instructions = """
             YOU ARE A PROFESSIONAL CAREER & ATS RESUME EXPERT.
             - Provide structured, professional advice, ATS resume scoring tips, and constructive recommendations.
             """
+
         else: # 🔥 Savage Roast Mode
             intensity_map = {
                 "Normal": "Funny, sarcastic, lighthearted banter.",
                 "Medium": "Sharp, brutally honest, witty roast.",
                 "Hard": "ULTIMATE SAVAGE ROAST! Ruthlessly target weak points, buzzwords, and experience gaps."
             }
-            persona_instructions = f"""
-            YOU ARE AN INTELLIGENT AI ROASTER & CAREER CONSULTANT.
-            Roast Level: {roast_level} ({intensity_map.get(roast_level, 'Sharp roast')})
 
-            IMPORTANT DUAL-RESPONSE RULE (WHEN EVALUATING RESUMES/TEXT):
-            Structure your response into 2 distinct sections:
-            1. 🔥 **The Roast:** Witty, sarcastic, sharp attack on weak points or buzzwords.
-            2. 💡 **How to Fix It (Solution):** 2-3 clear, professional, actionable steps to fix those exact weaknesses.
-            """
+            if is_greeting and not active_pdf_text:
+                persona_instructions = f"""
+                YOU ARE A WITTY, QUICK-THINKING AI ROASTER.
+                User sent a simple greeting ('{last_user_msg}'). NO RESUME IS ATTACHED.
+                STRICT RULES:
+                1. Reply with a fun, witty, sarcastic greeting!
+                2. Ask the user what they want to roast today (e.g., 'Haan ji! Aap kaise ho? Bolo aaj kya roast karwana hai — koi topic, bad idea, ganda code snippet, ya phir Resume PDF attach kar rahe ho?').
+                3. DO NOT fake a resume roast! DO NOT mention fake buzzwords like 'team player' or 'innovative thinker'!
+                """
+            elif active_pdf_text:
+                persona_instructions = f"""
+                YOU ARE AN INTELLIGENT AI ROASTER & CAREER CONSULTANT.
+                Roast Level: {roast_level} ({intensity_map.get(roast_level, 'Sharp roast')})
+                A RESUME PDF HAS BEEN ATTACHED.
+                Structure your response into 2 distinct sections:
+                1. 🔥 **The Roast:** Witty, sarcastic, sharp attack on actual weak points, gaps, or buzzwords in the attached resume.
+                2. 💡 **How to Fix It (Solution):** 2-3 clear, professional, actionable steps to fix those exact weaknesses.
+                """
+            else:
+                persona_instructions = f"""
+                YOU ARE AN INTELLIGENT AI ROASTER & CAREER CONSULTANT.
+                Roast Level: {roast_level} ({intensity_map.get(roast_level, 'Sharp roast')})
+                NO RESUME ATTACHED. User provided a text statement or question: '{last_user_msg}'
+                Structure your response into 2 distinct sections:
+                1. 🔥 **The Roast:** Roast the SPECIFIC text or statement provided by the user.
+                2. 💡 **How to Fix It (Solution):** 2-3 constructive steps or better alternatives.
+                DO NOT fake a resume roast if user didn't share a resume!
+                """
 
         if language in ["Roman Urdu", "Roman Hindi"]:
             lang_instruction = f"""
@@ -275,7 +299,7 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
         for msg in messages_history[-6:]:
             formatted_messages.append({"role": msg["role"], "content": msg["content"]})
 
-        # Inject PDF text only if evaluating PDF right now
+        # Inject PDF text ONLY if evaluating PDF right now
         if active_pdf_text:
             formatted_messages.append({
                 "role": "system",
