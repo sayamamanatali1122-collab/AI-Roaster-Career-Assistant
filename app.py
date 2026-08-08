@@ -283,7 +283,7 @@ div[data-testid="stChatInput"] textarea {
     margin: 12px 0 6px 0;
 }
 
-/* ── STREAMLIT OVERRIDES & EXPANDER OVERLAP FIX ── */
+/* ── STREAMLIT OVERRIDES ── */
 .stSelectbox > label,
 .stRadio > label,
 .stSlider > label { color: #8B949E !important; font-size: 0.82rem !important; font-weight: 600 !important; }
@@ -296,29 +296,6 @@ div[data-testid="stChatInput"] textarea {
 [data-testid="stSidebar"] button {
     border-radius: 8px !important;
     font-size: 0.82rem !important;
-}
-.stExpander {
-    background: rgba(22,27,34,0.5) !important;
-    border: 1px solid #21262D !important;
-    border-radius: 10px !important;
-}
-/* Complete Fix for Expander Icon Overlap Issue */
-.stExpander details { width: 100%; }
-.stExpander details summary {
-    display: flex !important;
-    align-items: center !important;
-    padding: 10px 12px !important;
-}
-.stExpander details summary svg {
-    order: 2 !important;
-    margin-left: auto !important;
-}
-.stExpander details summary p {
-    color: #8B949E !important;
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-    margin: 0 !important;
-    order: 1 !important;
 }
 hr { border-color: #1C2333 !important; margin: 10px 0 !important; }
 .stSpinner > div { border-top-color: #388BFD !important; }
@@ -676,7 +653,7 @@ with st.sidebar:
             </div>
         """, unsafe_allow_html=True)
 
-        with st.expander("Activate License"):
+        with st.expander("🔑 Activate License"):
             lic = st.text_input("License Key:", type="password", key="lic_key")
             if st.button("✅ Activate Pro", use_container_width=True):
                 if lic:
@@ -688,7 +665,7 @@ with st.sidebar:
                 else:
                     st.warning("Enter your license key.")
 
-    with st.expander("Developer Access"):
+    with st.expander("🛠️ Developer Access"):
         if st.session_state.is_pro:
             st.info("⚡ Dev Pro Mode is active.")
             if st.button("🔴 Deactivate", use_container_width=True):
