@@ -206,9 +206,7 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
                 last_user_msg = m["content"].strip().lower()
                 break
 
-        greetings_list = ["hi", "hello", "hey", "hy", "hlo", "assalamoalaikum", "salam", "kya haal hai", "kaise ho", "aao kaise ho", "good morning", "good evening"]
-        
-        # Check if user message is short greeting
+        greetings_list = ["hi", "hello", "hey", "hy", "hlo", "assalamoalaikum", "salam", "kya haal hai", "kaise ho", "good morning", "good evening"]
         words = last_user_msg.split()
         is_greeting = (last_user_msg in greetings_list) or (len(words) <= 3 and any(g in last_user_msg for g in ["hi", "hello", "hey", "salam", "kaise", "haal"]))
         is_asking_about_bot = any(w in last_user_msg for w in ["tum kon ho", "tumhare kya feature", "tum kya kar sakte ho", "features", "who are you", "what can you do"])
@@ -254,8 +252,8 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
                 User sent a simple greeting ('{last_user_msg}'). NO RESUME IS ATTACHED.
                 STRICT RULES:
                 1. Reply with a fun, witty, sarcastic greeting!
-                2. Ask the user what they want to roast today (e.g., 'Haan ji! Aap kaise ho? Bolo aaj kya roast karwana hai — koi topic, bad idea, ganda code snippet, ya phir Resume PDF attach kar rahe ho?').
-                3. DO NOT fake a resume roast! DO NOT mention fake buzzwords like 'team player' or 'innovative thinker'!
+                2. Ask what they want to roast today (e.g., 'Haan ji! Aaj kya roast karwana hai?').
+                3. DO NOT force 'The Roast' or 'How to Fix' headers for a simple greeting!
                 """
             elif active_pdf_text:
                 persona_instructions = f"""
@@ -268,13 +266,18 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
                 """
             else:
                 persona_instructions = f"""
-                YOU ARE AN INTELLIGENT AI ROASTER & CAREER CONSULTANT.
+                YOU ARE AN INTELLIGENT AI ROASTER.
                 Roast Level: {roast_level} ({intensity_map.get(roast_level, 'Sharp roast')})
-                NO RESUME ATTACHED. User provided a text statement or question: '{last_user_msg}'
-                Structure your response into 2 distinct sections:
-                1. 🔥 **The Roast:** Roast the SPECIFIC text or statement provided by the user.
-                2. 💡 **How to Fix It (Solution):** 2-3 constructive steps or better alternatives.
-                DO NOT fake a resume roast if user didn't share a resume!
+                User provided: '{last_user_msg}'.
+
+                DYNAMIC THINKING RULES FOR ROASTING:
+                1. IF USER IS PLAYING/BANTERING (e.g., 'tum mujhe roast karo main tumhein', jokes, playful banter):
+                   - Roast them back with sharp, hilarious, witty banter!
+                   - DO NOT add a preachy 'How to Fix It' section! DO NOT lecture them about 'professionalism' or 'self-awareness'!
+                
+                2. IF USER SHARED A SPECIFIC CODE, BUSINESS IDEA, OR ACTUAL RESUME/CAREER PROBLEM:
+                   - Roast the specific idea/code.
+                   - Provide a 💡 **How to Fix It (Solution)** section ONLY if there is a real technical/business problem to solve.
                 """
 
         if language in ["Roman Urdu", "Roman Hindi"]:
