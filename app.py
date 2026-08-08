@@ -44,13 +44,85 @@ st.markdown("""
 }
 
 /* ── SIDEBAR ── */
-[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0D1117 0%, #0A0F18 100%) !important;
-    border-right: 1px solid #1C2333 !important;
+/* ── PREMIUM EXPANDER / TOGGLE FIX ── */
+[data-testid="stExpander"] {
+    width: 100% !important;
+    margin: 0 0 12px 0 !important;
+    overflow: hidden !important;
 }
-[data-testid="stSidebar"] .block-container { padding: 0 !important; }
-[data-testid="stSidebar"] > div { padding: 0 !important; }
-section[data-testid="stSidebar"] > div > div > div { padding: 1rem 0.9rem !important; }
+
+/* Clean clickable header */
+[data-testid="stExpander"] details {
+    width: 100% !important;
+    border: none !important;
+}
+
+/* Expander header */
+[data-testid="stExpander"] summary {
+    min-height: 48px !important;
+    padding: 0 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    background: #0D1117 !important;
+    border: 1px solid #30363D !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+}
+
+/* Professional hover */
+[data-testid="stExpander"] summary:hover {
+    background: #111820 !important;
+    border-color: #388BFD !important;
+}
+
+/* IMPORTANT: hide Streamlit's raw material icon text */
+[data-testid="stExpander"] summary [data-testid="stExpanderToggleIcon"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 22px !important;
+    min-width: 22px !important;
+    height: 22px !important;
+    color: #8B949E !important;
+}
+
+/* Prevent raw icon names such as _arrow_right from appearing */
+[data-testid="stExpander"] summary span {
+    overflow: hidden !important;
+}
+
+/* Only style the actual title text */
+[data-testid="stExpander"] summary p {
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #C9D1D9 !important;
+    font-size: 0.84rem !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+}
+
+/* Expander content */
+[data-testid="stExpander"] details[open] summary {
+    border-radius: 10px 10px 0 0 !important;
+    border-color: #388BFD !important;
+}
+
+[data-testid="stExpander"] details[open] > div {
+    background: #0D1117 !important;
+    border: 1px solid #30363D !important;
+    border-top: none !important;
+    border-radius: 0 0 10px 10px !important;
+    padding: 12px !important;
+}
+
+/* Smooth toggle feel */
+[data-testid="stExpander"] details[open] summary {
+    box-shadow: 0 0 0 1px rgba(56,139,253,0.08) !important;
+}
 
 /* ── MAIN LAYOUT ── */
 .block-container {
