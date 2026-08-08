@@ -1,12 +1,15 @@
 import os
 import datetime
 import requests
+import base64
+import io
 import streamlit as st
 from pypdf import PdfReader
+from PIL import Image
 from groq import Groq
 
 # Constants
-PAGE_TITLE = "Advanced AI Companion & Career Assistant"
+PAGE_TITLE = "Advanced AI Companion & Multimodal Assistant"
 PAGE_ICON = "🤖"
 LAYOUT = "wide"
 
@@ -20,7 +23,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ⚡ CLEAN MODERN STYLING
+# ⚡ CHATGPT / GEMINI ULTIMATE DARK STYLING
 st.markdown("""
 <style>
     /* Dark Theme Core */
@@ -65,32 +68,64 @@ st.markdown("""
     .mode-card {
         background-color: #161B22 !important;
         border: 1px solid #30363D !important;
-        border-radius: 10px;
-        padding: 16px;
+        border-radius: 12px;
+        padding: 18px;
         margin-bottom: 12px;
         height: 100%;
+        transition: border-color 0.2s ease;
+    }
+    .mode-card:hover {
+        border-color: #58A6FF !important;
     }
     
     .mode-card h4 {
         color: #FFFFFF !important;
-        font-size: 1rem !important;
+        font-size: 1.05rem !important;
         font-weight: 700;
-        margin: 0 0 4px 0;
+        margin: 0 0 6px 0;
     }
     
     .mode-card p {
         color: #8B949E !important;
-        font-size: 0.85rem !important;
+        font-size: 0.88rem !important;
         margin: 0;
+        line-height: 1.4;
     }
 
-    /* Gemini Bar Attachment Button */
-    div[data-testid="stPopover"] > button {
+    /* ChatGPT/Gemini '+' Attachment Button Style */
+    [data-testid="stFileUploader"] {
+        background-color: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+    [data-testid="stFileUploader"] section {
+        padding: 0 !important;
+        border: none !important;
+        background: transparent !important;
+    }
+    [data-testid="stFileUploader"] button {
         background-color: #21262D !important;
         color: #58A6FF !important;
         border: 1px solid #30363D !important;
         border-radius: 8px !important;
+        padding: 6px 12px !important;
         font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        margin-top: 4px !important;
+    }
+
+    /* Attached File Badge */
+    .file-badge {
+        background-color: #1F6FEB22;
+        border: 1px solid #1F6FEB;
+        color: #58A6FF;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -109,26 +144,44 @@ if "current_chat_id" not in st.session_state:
     st.session_state.all_chats[initial_id] = {"title": "New Chat", "messages": []}
     st.session_state.current_chat_id = initial_id
 
-if "attached_pdf_text" not in st.session_state:
-    st.session_state.attached_pdf_text = None
-if "attached_pdf_name" not in st.session_state:
-    st.session_state.attached_pdf_name = None
+if "attached_file_data" not in st.session_state:
+    st.session_state.attached_file_data = None
+if "attached_file_name" not in st.session_state:
+    st.session_state.attached_file_name = None
+if "attached_file_type" not in st.session_state:
+    st.session_state.attached_file_type = None
 
 # ==========================================
-# 3. HELPER FUNCTIONS & AI ENGINE
+# 3. MULTIMODAL FILE PROCESSOR & AI ENGINE
 # ==========================================
-def read_pdf(uploaded_file):
-    try:
-        reader = PdfReader(uploaded_file)
-        text = ""
-        for page in reader.pages:
-            extracted = page.extract_text()
-            if extracted:
-                text += extracted + "\n"
-        return text.strip() if text.strip() else None
-    except Exception as e:
-        st.error(f"PDF reading error: {e}")
-        return None
+def process_uploaded_file(uploaded_file):
+    file_type = uploaded_file.type
+    file_name = uploaded_file.name
+
+    if "pdf" in file_type or file_name.lower().endswith(".pdf"):
+        try:
+            reader = PdfReader(uploaded_file)
+            text = ""
+            for page in reader.pages:
+                extracted = page.extract_text()
+                if extracted:
+                    text += extracted + "\n"
+            return ("pdf", text.strip() if text.strip() else "PDF loaded, but text could not be extracted.")
+        except Exception as e:
+            return ("error", f"PDF Extraction Error: {str(e)}")
+
+    elif any(img_ext in file_type or file_name.lower().endswith(img_ext) for img_ext in ["png", "jpg", "jpeg", "webp"]):
+        try:
+            image = Image.open(uploaded_file)
+            buffered = io.BytesIO()
+            img_format = "PNG" if file_name.lower().endswith(".png") else "JPEG"
+            image.save(buffered, format=img_format)
+            img_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+            return ("image", img_b64)
+        except Exception as e:
+            return ("error", f"Image Error: {str(e)}")
+
+    return ("error", "Unsupported file type! Please upload a PDF or Image (PNG, JPG, JPEG).")
 
 def get_effective_api_key():
     try:
@@ -151,16 +204,45 @@ def verify_lemonsqueezy_license(license_key):
     except Exception as e:
         return False, f"Verification error: {str(e)}"
 
-def call_groq_with_fallback(client, messages, temperature=0.7, max_tokens=1000, is_pro=False):
+# ⚡ Groq Text & Multimodal Execution
+def call_groq_engine(client, messages, is_pro=False, image_b64=None):
     primary_model = "llama-3.3-70b-versatile" if is_pro else "llama-3.1-8b-instant"
     fallback_model = "llama-3.1-8b-instant"
+    vision_model = "llama-3.2-11b-vision-instruct"
 
+    # If image is present, execute Vision API call
+    if image_b64:
+        try:
+            # Combine system and user context into text prompt
+            text_prompt = "\n".join([m.get("content", "") for m in messages if isinstance(m.get("content"), str)])
+            vision_messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": text_prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"}
+                        }
+                    ]
+                }
+            ]
+            return client.chat.completions.create(
+                model=vision_model,
+                messages=vision_messages,
+                max_tokens=1000,
+                temperature=0.7
+            )
+        except Exception:
+            pass  # Fallback to standard text execution if vision model fails
+
+    # Standard Text Execution
     kwargs = {
         "messages": messages,
-        "temperature": temperature,
-        "max_tokens": max_tokens,
-        "frequency_penalty": 0.6,
-        "presence_penalty": 0.6,
+        "temperature": 0.7,
+        "max_tokens": 1000,
+        "frequency_penalty": 0.1,  # Low penalty maintains natural Urdu grammar
+        "presence_penalty": 0.1,
     }
 
     try:
@@ -178,11 +260,9 @@ def generate_chat_title(first_user_msg):
     try:
         client = Groq(api_key=effective_key)
         prompt = f"Summarize this input into a short 2 to 4 word title: '{first_user_msg[:150]}'"
-        completion = call_groq_with_fallback(
+        completion = call_groq_engine(
             client, 
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
-            max_tokens=15,
             is_pro=st.session_state.is_pro
         )
         title = completion.choices[0].message.content.strip().replace('"', '')
@@ -191,10 +271,10 @@ def generate_chat_title(first_user_msg):
         cleaned = first_user_msg.strip().split("\n")[0]
         return cleaned[:20] + "..." if len(cleaned) > 20 else cleaned
 
-def get_ai_response(messages_history, active_mode, roast_level, language, active_pdf_text=None):
+def get_ai_response(messages_history, active_mode, roast_level, language, active_file_type=None, active_file_data=None):
     effective_key = get_effective_api_key()
     if not effective_key:
-        return "⚠️ **Error:** GROQ_API_KEY missing hai!"
+        return "⚠️ **Error:** GROQ_API_KEY missing hai! Please secrets configuration check karein."
 
     try:
         client = Groq(api_key=effective_key)
@@ -206,7 +286,7 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
                 last_user_msg = m["content"].strip().lower()
                 break
 
-        greetings_list = ["hi", "hello", "hey", "hy", "hlo", "assalamoalaikum", "salam", "kya haal hai", "kaise ho", "good morning", "good evening"]
+        greetings_list = ["hi", "hello", "hey", "hy", "hlo", "assalamoalaikum", "salam", "kya haal hai", "kaise ho", "aao kaise ho", "good morning", "good evening"]
         words = last_user_msg.split()
         is_greeting = (last_user_msg in greetings_list) or (len(words) <= 3 and any(g in last_user_msg for g in ["hi", "hello", "hey", "salam", "kaise", "haal"]))
         is_asking_about_bot = any(w in last_user_msg for w in ["tum kon ho", "tumhare kya feature", "tum kya kar sakte ho", "features", "who are you", "what can you do"])
@@ -217,20 +297,20 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
                 YOU ARE AN ADVANCED MULTI-MODAL AI COMPANION (LIKE CHATGPT & GEMINI).
                 User is asking about your capabilities. Explain clearly that you can help with:
                 1. 💬 General Q&A, Discussions & Brainstorming
-                2. 💻 Coding, Debugging & Scripting
-                3. 📄 Resume Evaluation & PDF Analysis
+                2. 💻 Coding, Debugging & Deep Logic Architecture
+                3. 📄 PDF & Image Document Analysis (Multimodal Vision)
                 4. 🔥 Savage Resume/Code/Topic Roasting (Optional Mode)
                 5. 🧠 Career Guidance & ATS Optimization
                 """
             elif is_greeting:
                 persona_instructions = """
                 YOU ARE A WARM, INTELLIGENT, AND FRIENDLY ADVANCED AI COMPANION.
-                Greet the user warmly, politely, and naturally. Ask how you can assist them today.
+                Greet the user warmly, politely, and naturally. Ask how you can assist them today with coding, questions, or document analysis.
                 """
             else:
                 persona_instructions = """
                 YOU ARE AN ADVANCED AI ASSISTANT (LIKE CHATGPT & GEMINI).
-                Respond intelligently, helpfully, and accurately to any user request (Coding, Q&A, Writing, etc.).
+                Respond intelligently, helpfully, and accurately to any user request (Coding, Q&A, Writing, Image Analysis, etc.).
                 """
 
         elif active_mode == "🧠 Career & ATS Expert":
@@ -243,25 +323,25 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
             intensity_map = {
                 "Normal": "Funny, sarcastic, lighthearted banter.",
                 "Medium": "Sharp, brutally honest, witty roast.",
-                "Hard": "ULTIMATE SAVAGE ROAST! Ruthlessly target weak points, buzzwords, and experience gaps."
+                "Hard": "ULTIMATE HIGH-LEVEL SAVAGE ROAST! Ruthlessly target weak points, buzzwords, and funny traits like a top stand-up comedian."
             }
 
-            if is_greeting and not active_pdf_text:
+            if is_greeting and not active_file_data:
                 persona_instructions = f"""
-                YOU ARE A WITTY, QUICK-THINKING DESI AI ROASTER.
-                User sent a simple greeting ('{last_user_msg}'). NO RESUME IS ATTACHED.
+                YOU ARE A WITTY, HIGH-ENERGY DESI STAND-UP COMEDIAN ROASTER.
+                User sent a simple greeting ('{last_user_msg}'). NO FILE IS ATTACHED.
                 STRICT RULES:
                 1. Reply with a fun, witty, sarcastic greeting in natural Pakistani Roman Urdu!
-                2. Ask what they want to roast today (e.g., 'Haan ji! Aaj kis ko roast karwana hai — Donald Trump, koi bad idea, ganda code, ya apni Resume PDF?').
+                2. Ask what they want to roast today (e.g., 'Haan ji! Aaj kis ko roast karwana hai — Donald Trump, koi bad idea, ganda code, ya koi Document/Resume attach kar rahe ho?').
                 3. DO NOT force 'The Roast' or 'How to Fix' headers for a simple greeting!
                 """
-            elif active_pdf_text:
+            elif active_file_data:
                 persona_instructions = f"""
                 YOU ARE AN INTELLIGENT AI ROASTER & CAREER CONSULTANT.
                 Roast Level: {roast_level} ({intensity_map.get(roast_level, 'Sharp roast')})
-                A RESUME PDF HAS BEEN ATTACHED.
+                A DOCUMENT/RESUME FILE (PDF or IMAGE) HAS BEEN ATTACHED.
                 Structure your response into 2 distinct sections:
-                1. 🔥 **The Roast:** Witty, sarcastic, sharp attack on actual weak points, gaps, or buzzwords in the attached resume.
+                1. 🔥 **The Roast:** Witty, sarcastic, sharp attack on actual weak points, gaps, or buzzwords in the attached document.
                 2. 💡 **How to Fix It (Solution):** 2-3 clear, professional, actionable steps to fix those exact weaknesses.
                 """
             else:
@@ -271,17 +351,17 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
                 User requested to roast: '{last_user_msg}'.
 
                 ROASTING EXECUTION RULES:
-                1. REAL SAVAGE ROAST: Give hilarious, witty, punchy roast commentary on the target (e.g. Donald Trump's orange tan, hair, ALL CAPS tweets, wall obsession, etc.).
-                2. NO FAKE DIALOGUES: DO NOT write fake scripted Q&A dialogues like 'Trump: ... Tum: ...'!
-                3. NO PREACHY LECTURES: DO NOT add a 'How to Fix It' or 'Solution' section unless a real technical/career bug or resume is provided!
+                1. REAL SAVAGE ROAST: Give hilarious, witty, punchy roast commentary on the target!
+                2. NO GIBBERISH / NO FAKE DIALOGUES: DO NOT write fake scripted Q&A dialogues ('Trump: ... Tum: ...') and DO NOT use alien meaningless words.
+                3. NO PREACHY LECTURES: DO NOT add a 'How to Fix It' or 'Solution' section unless a real technical/career bug or document is provided!
                 """
 
         if language in ["Roman Urdu", "Roman Hindi"]:
             lang_instruction = f"""
-            STRICT PAKISTANI/SOUTH ASIAN ROMAN URDU RULES:
-            1. Use AUTHENTIC everyday Pakistani WhatsApp-style Roman Urdu (e.g., 'Bhai', 'Yaar', 'Baat suno', 'Khas', 'Zaroori', 'Kya chal raha hai').
-            2. BANNED SHUDDH HINDI WORDS: NEVER use words like 'adarsh', 'vishesh', 'mehsus', 'avashyak', 'saari', 'karya', 'badaa'. Use natural Urdu equivalents instead.
-            3. CORRECT MASCULINE/NEUTRAL GRAMMAR: Always address user in standard masculine/neutral form ('kar rahe ho', 'puch rahe ho', 'aaye ho', 'kaise ho'). NEVER use wrong female inflections ('leti ho', 'kar rahi ho', 'aayi hai').
+            STRICT SIMPLE & NATURAL ROMAN URDU RULES:
+            1. Use 100% SIMPLE, NATURAL everyday Pakistani Roman Urdu (e.g., 'Bhai', 'Yaar', 'Baat suno', 'Khas', 'Zaroori', 'Kya chal raha hai', 'Lagta hai').
+            2. NO SHUDDH HINDI OR COMPLEX ENGLISH SLANG: NEVER use words like 'adarsh', 'vishesh', 'mehsus', 'avashyak', 'saari', 'karya', 'badaa' or confusing slang ('Orange Tan'). Use simple local terms everyone understands.
+            3. PERFECT NATURAL GRAMMAR: Always address user in standard masculine/neutral form ('kar rahe ho', 'puch rahe ho', 'aaye ho', 'kaise ho').
             """
         else:
             lang_instruction = f"STRICT LANGUAGE RULE: Respond strictly in {language}."
@@ -298,21 +378,21 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
         for msg in messages_history[-6:]:
             formatted_messages.append({"role": msg["role"], "content": msg["content"]})
 
-        # Inject PDF text ONLY if evaluating PDF right now
-        if active_pdf_text:
+        # Inject PDF text if PDF file
+        image_b64 = None
+        if active_file_type == "pdf":
             formatted_messages.append({
                 "role": "system",
-                "content": f"ATTACHED RESUME CONTENT TO EVALUATE:\n{active_pdf_text}"
+                "content": f"ATTACHED PDF CONTENT TO EVALUATE:\n{active_file_data}"
             })
+        elif active_file_type == "image":
+            image_b64 = active_file_data
 
-        temp = 0.7 if (is_greeting or is_asking_about_bot) else (0.85 if active_mode == "🔥 Savage Roast Mode" else 0.4)
-
-        completion = call_groq_with_fallback(
+        completion = call_groq_engine(
             client,
             messages=formatted_messages,
-            temperature=temp,
-            max_tokens=950,
-            is_pro=st.session_state.is_pro
+            is_pro=st.session_state.is_pro,
+            image_b64=image_b64
         )
         return completion.choices[0].message.content
     except Exception as e:
@@ -322,8 +402,9 @@ def start_new_chat():
     new_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     st.session_state.all_chats[new_id] = {"title": "New Chat", "messages": []}
     st.session_state.current_chat_id = new_id
-    st.session_state.attached_pdf_text = None
-    st.session_state.attached_pdf_name = None
+    st.session_state.attached_file_data = None
+    st.session_state.attached_file_name = None
+    st.session_state.attached_file_type = None
 
 def delete_chat(chat_id):
     del st.session_state.all_chats[chat_id]
@@ -443,7 +524,7 @@ with st.sidebar:
 st.markdown("""
     <div class='brand-header'>
         <h1 class='brand-title'>Advanced AI Companion</h1>
-        <p class='brand-subtitle'>Chat casually, ask questions, generate code, or attach PDF resume for smart analysis.</p>
+        <p class='brand-subtitle'>Chat casually, ask questions, generate code, or attach PDF/Image for smart analysis.</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -476,36 +557,41 @@ for message in current_chat["messages"]:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 📎 GEMINI-STYLE ATTACHMENT BAR RIGHT ABOVE CHAT INPUT
-col_attach, col_status = st.columns([1.2, 3.8])
-with col_attach:
-    with st.popover("📎 Attach PDF"):
-        file_input = st.file_uploader("Upload Resume PDF", type=["pdf"], key="main_pdf_uploader")
-        if file_input:
-            p_text = read_pdf(file_input)
-            if p_text:
-                st.session_state.attached_pdf_text = p_text
-                st.session_state.attached_pdf_name = file_input.name
-                st.success(f"Loaded: {file_input.name}")
+# 📎 GEMINI / CHATGPT STYLE INTEGRATED '+' ATTACHMENT BAR
+col_file, col_status = st.columns([1.5, 8.5])
+with col_file:
+    uploaded_file = st.file_uploader(
+        "📎 Attach",
+        type=["pdf", "png", "jpg", "jpeg", "webp"],
+        key="main_attachment_input"
+    )
+    if uploaded_file:
+        f_type, f_data = process_uploaded_file(uploaded_file)
+        if f_type != "error":
+            st.session_state.attached_file_type = f_type
+            st.session_state.attached_file_data = f_data
+            st.session_state.attached_file_name = uploaded_file.name
 
 with col_status:
-    if st.session_state.attached_pdf_name:
-        st.markdown(f"📄 **Attached:** `{st.session_state.attached_pdf_name}`")
+    if st.session_state.attached_file_name:
+        st.markdown(f"<div class='file-badge'>📄 Attached: <b>{st.session_state.attached_file_name}</b></div>", unsafe_allow_html=True)
 
 # Chat Input Bar
 prompt_text = st.chat_input(f"Type a message... ({active_mode})")
 
-if prompt_text or st.session_state.attached_pdf_text:
-    user_text = prompt_text if prompt_text else "Please evaluate my attached resume."
+if prompt_text or st.session_state.attached_file_data:
+    user_text = prompt_text if prompt_text else "Please evaluate my attached document/file."
     
-    current_pdf_text = st.session_state.attached_pdf_text
+    current_f_type = st.session_state.attached_file_type
+    current_f_data = st.session_state.attached_file_data
     user_display_msg = user_text
 
-    if st.session_state.attached_pdf_name and current_pdf_text:
-        user_display_msg = f"📎 **[Attached Resume: {st.session_state.attached_pdf_name}]**\n\n{user_text}"
-        # Consume the attachment so it doesn't leak into future turns
-        st.session_state.attached_pdf_text = None
-        st.session_state.attached_pdf_name = None
+    if st.session_state.attached_file_name and current_f_data:
+        user_display_msg = f"📎 **[Attached File: {st.session_state.attached_file_name}]**\n\n{user_text}"
+        # Clear attached state after consumption so it doesn't leak into future turns
+        st.session_state.attached_file_data = None
+        st.session_state.attached_file_name = None
+        st.session_state.attached_file_type = None
 
     # Auto Title Generator
     if not current_chat["messages"] or current_chat["title"] == "New Chat":
@@ -521,7 +607,8 @@ if prompt_text or st.session_state.attached_pdf_text:
                 active_mode,
                 roast_level,
                 language,
-                active_pdf_text=current_pdf_text
+                active_file_type=current_f_type,
+                active_file_data=current_f_data
             )
             st.markdown(response)
             current_chat["messages"].append({"role": "assistant", "content": response})
