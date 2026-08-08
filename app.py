@@ -283,7 +283,7 @@ div[data-testid="stChatInput"] textarea {
     margin: 12px 0 6px 0;
 }
 
-/* ── STREAMLIT OVERRIDES ── */
+/* ── STREAMLIT OVERRIDES & EXPANDER FIX ── */
 .stSelectbox > label,
 .stRadio > label,
 .stSlider > label { color: #8B949E !important; font-size: 0.82rem !important; font-weight: 600 !important; }
@@ -302,7 +302,7 @@ div[data-testid="stChatInput"] textarea {
     border: 1px solid #21262D !important;
     border-radius: 10px !important;
 }
-.stExpander summary { color: #8B949E !important; font-size: 0.82rem !important; }
+.stExpander details summary p { color: #8B949E !important; font-size: 0.85rem !important; font-weight: 600 !important; margin: 0 !important; }
 hr { border-color: #1C2333 !important; margin: 10px 0 !important; }
 .stSpinner > div { border-top-color: #388BFD !important; }
 </style>
@@ -486,7 +486,7 @@ STYLE: Natural, friendly, conversational — like a smart friend.
 def call_groq_engine(client, messages, is_pro=False, image_b64=None):
     primary = "llama-3.3-70b-versatile" if is_pro else "llama-3.1-8b-instant"
     fallback = "llama-3.1-8b-instant"
-    vision  = "llama-3.2-11b-vision-instruct"
+    vision   = "llama-3.2-11b-vision-instruct"
 
     if image_b64:
         try:
@@ -690,6 +690,15 @@ with st.sidebar:
                     st.session_state.is_pro = True; st.rerun()
                 else:
                     st.error("❌ Invalid key.")
+
+    st.markdown("---")
+    
+    # 🌟 Professional Toggle Switch Button for Pro / Free Plan Mode
+    st.markdown('<p class="section-label">System Mode Toggle</p>', unsafe_allow_html=True)
+    toggle_pro = st.toggle("⚡ Enable Pro Engine", value=st.session_state.is_pro, help="Switch between Free and Pro model instantly.")
+    if toggle_pro != st.session_state.is_pro:
+        st.session_state.is_pro = toggle_pro
+        st.rerun()
 
     st.markdown("---")
     language = st.selectbox("🌐 Language:",
