@@ -23,7 +23,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ⚡ CHATGPT / GEMINI ULTIMATE DARK STYLING
+# ⚡ CHATGPT / GEMINI OFFICIAL CHAT BAR STYLING
 st.markdown("""
 <style>
     /* Dark Theme Core */
@@ -41,8 +41,8 @@ st.markdown("""
     /* Layout Spacing */
     .block-container {
         padding-top: 1.5rem !important;
-        padding-bottom: 6rem !important;
-        max-width: 920px !important;
+        padding-bottom: 7rem !important;
+        max-width: 900px !important;
         margin: 0 auto;
     }
 
@@ -92,40 +92,58 @@ st.markdown("""
         line-height: 1.4;
     }
 
-    /* ChatGPT/Gemini '+' Attachment Button Style */
+    /* Chat Input Pill Container Styling */
+    div[data-testid="stChatInput"] {
+        background-color: #161B22 !important;
+        border: 1px solid #30363D !important;
+        border-radius: 28px !important;
+        padding-left: 10px !important;
+    }
+
+    /* Attached File Badge floating above Chat Bar */
+    .attached-file-badge {
+        position: fixed;
+        bottom: 75px;
+        left: max(25px, calc(50vw - 430px));
+        z-index: 9999;
+        background-color: #1F6FEB22;
+        border: 1px solid #1F6FEB;
+        color: #58A6FF;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    /* Custom File Upload Button Styling (Sleek '+' Icon) */
+    .chat-attachment-bar {
+        margin-bottom: 8px;
+    }
     [data-testid="stFileUploader"] {
-        background-color: transparent !important;
+        background: transparent !important;
         border: none !important;
         padding: 0 !important;
     }
+    [data-testid="stFileUploader"] label {
+        display: none !important;
+    }
     [data-testid="stFileUploader"] section {
-        padding: 0 !important;
-        border: none !important;
         background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
     }
     [data-testid="stFileUploader"] button {
         background-color: #21262D !important;
         color: #58A6FF !important;
         border: 1px solid #30363D !important;
         border-radius: 8px !important;
-        padding: 6px 12px !important;
+        padding: 6px 14px !important;
         font-weight: 600 !important;
         font-size: 0.85rem !important;
-        margin-top: 4px !important;
-    }
-
-    /* Attached File Badge */
-    .file-badge {
-        background-color: #1F6FEB22;
-        border: 1px solid #1F6FEB;
-        color: #58A6FF;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 8px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -210,10 +228,9 @@ def call_groq_engine(client, messages, is_pro=False, image_b64=None):
     fallback_model = "llama-3.1-8b-instant"
     vision_model = "llama-3.2-11b-vision-instruct"
 
-    # If image is present, execute Vision API call
+    # Multimodal Vision Execution for Images
     if image_b64:
         try:
-            # Combine system and user context into text prompt
             text_prompt = "\n".join([m.get("content", "") for m in messages if isinstance(m.get("content"), str)])
             vision_messages = [
                 {
@@ -234,7 +251,7 @@ def call_groq_engine(client, messages, is_pro=False, image_b64=None):
                 temperature=0.7
             )
         except Exception:
-            pass  # Fallback to standard text execution if vision model fails
+            pass
 
     # Standard Text Execution
     kwargs = {
@@ -279,7 +296,6 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
     try:
         client = Groq(api_key=effective_key)
 
-        # Detect last user message intent
         last_user_msg = ""
         for m in reversed(messages_history):
             if m["role"] == "user":
@@ -305,7 +321,7 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
             elif is_greeting:
                 persona_instructions = """
                 YOU ARE A WARM, INTELLIGENT, AND FRIENDLY ADVANCED AI COMPANION.
-                Greet the user warmly, politely, and naturally. Ask how you can assist them today with coding, questions, or document analysis.
+                Greet the user warmly, politely, and naturally. Ask how you can assist them today.
                 """
             else:
                 persona_instructions = """
@@ -557,11 +573,14 @@ for message in current_chat["messages"]:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 📎 GEMINI / CHATGPT STYLE INTEGRATED '+' ATTACHMENT BAR
-col_file, col_status = st.columns([1.5, 8.5])
-with col_file:
+# Attachment Badge if file is attached
+if st.session_state.attached_file_name:
+    st.markdown(f"<div class='attached-file-badge'>📄 Attached: <b>{st.session_state.attached_file_name}</b></div>", unsafe_allow_html=True)
+
+# Attachment bar right above chat bar
+with st.popover("📎 Attach File (PDF / Image)", use_container_width=False):
     uploaded_file = st.file_uploader(
-        "📎 Attach",
+        "Upload PDF or Image",
         type=["pdf", "png", "jpg", "jpeg", "webp"],
         key="main_attachment_input"
     )
@@ -571,10 +590,8 @@ with col_file:
             st.session_state.attached_file_type = f_type
             st.session_state.attached_file_data = f_data
             st.session_state.attached_file_name = uploaded_file.name
-
-with col_status:
-    if st.session_state.attached_file_name:
-        st.markdown(f"<div class='file-badge'>📄 Attached: <b>{st.session_state.attached_file_name}</b></div>", unsafe_allow_html=True)
+            st.success(f"Loaded: {uploaded_file.name}")
+            st.rerun()
 
 # Chat Input Bar
 prompt_text = st.chat_input(f"Type a message... ({active_mode})")
@@ -588,7 +605,6 @@ if prompt_text or st.session_state.attached_file_data:
 
     if st.session_state.attached_file_name and current_f_data:
         user_display_msg = f"📎 **[Attached File: {st.session_state.attached_file_name}]**\n\n{user_text}"
-        # Clear attached state after consumption so it doesn't leak into future turns
         st.session_state.attached_file_data = None
         st.session_state.attached_file_name = None
         st.session_state.attached_file_type = None
