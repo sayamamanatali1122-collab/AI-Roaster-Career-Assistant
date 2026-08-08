@@ -20,7 +20,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ⚡ CLEAN MODERN STYLING
+# ⚡ CLEAN MODERN STYLING & GEMINI ATTACHMENT BAR
 st.markdown("""
 <style>
     /* Dark Theme Core */
@@ -38,16 +38,9 @@ st.markdown("""
     /* Layout Spacing */
     .block-container {
         padding-top: 1.5rem !important;
-        padding-bottom: 5rem !important;
+        padding-bottom: 6rem !important;
         max-width: 900px !important;
         margin: 0 auto;
-    }
-
-    /* High Contrast Text Labels */
-    label, [data-testid="stWidgetLabel"] {
-        color: #F0F6FC !important;
-        font-weight: 600 !important;
-        font-size: 0.9rem !important;
     }
 
     /* Header Styling */
@@ -90,12 +83,13 @@ st.markdown("""
         margin: 0;
     }
 
-    /* File Uploader Container */
-    [data-testid="stFileUploader"] {
-        background-color: #161B22 !important;
-        border: 1px dashed #30363D !important;
-        border-radius: 10px;
-        padding: 10px;
+    /* Gemini Bar Attachment Button */
+    div[data-testid="stPopover"] > button {
+        background-color: #21262D !important;
+        color: #58A6FF !important;
+        border: 1px solid #30363D !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -114,10 +108,10 @@ if "current_chat_id" not in st.session_state:
     st.session_state.all_chats[initial_id] = {"title": "New Chat", "messages": []}
     st.session_state.current_chat_id = initial_id
 
-if "pending_pdf_text" not in st.session_state:
-    st.session_state.pending_pdf_text = None
-if "pending_pdf_name" not in st.session_state:
-    st.session_state.pending_pdf_name = None
+if "attached_pdf_text" not in st.session_state:
+    st.session_state.attached_pdf_text = None
+if "attached_pdf_name" not in st.session_state:
+    st.session_state.attached_pdf_name = None
 
 # ==========================================
 # 3. HELPER FUNCTIONS & AI ENGINE
@@ -132,7 +126,7 @@ def read_pdf(uploaded_file):
                 text += extracted + "\n"
         return text.strip() if text.strip() else None
     except Exception as e:
-        st.error(f"Error reading PDF: {e}")
+        st.error(f"PDF reading error: {e}")
         return None
 
 def get_effective_api_key():
@@ -156,7 +150,6 @@ def verify_lemonsqueezy_license(license_key):
     except Exception as e:
         return False, f"Verification error: {str(e)}"
 
-# ⚡ Groq Call with Frequency & Presence Penalties to Stop Repetitions
 def call_groq_with_fallback(client, messages, temperature=0.7, max_tokens=1000, is_pro=False):
     primary_model = "llama-3.3-70b-versatile" if is_pro else "llama-3.1-8b-instant"
     fallback_model = "llama-3.1-8b-instant"
@@ -165,8 +158,8 @@ def call_groq_with_fallback(client, messages, temperature=0.7, max_tokens=1000, 
         "messages": messages,
         "temperature": temperature,
         "max_tokens": max_tokens,
-        "frequency_penalty": 0.6,  # Prevents repeating same words
-        "presence_penalty": 0.6,   # Encourages fresh responses
+        "frequency_penalty": 0.6,
+        "presence_penalty": 0.6,
     }
 
     try:
@@ -183,7 +176,7 @@ def generate_chat_title(first_user_msg):
         return "New Chat"
     try:
         client = Groq(api_key=effective_key)
-        prompt = f"Summarize this input into a short 2 to 4 word chat title: '{first_user_msg[:150]}'"
+        prompt = f"Summarize this input into a short 2 to 4 word title: '{first_user_msg[:150]}'"
         completion = call_groq_with_fallback(
             client, 
             messages=[{"role": "user", "content": prompt}],
@@ -197,29 +190,29 @@ def generate_chat_title(first_user_msg):
         cleaned = first_user_msg.strip().split("\n")[0]
         return cleaned[:20] + "..." if len(cleaned) > 20 else cleaned
 
-def get_ai_response(messages_history, active_mode, roast_level, language):
+def get_ai_response(messages_history, active_mode, roast_level, language, active_pdf_text=None):
     effective_key = get_effective_api_key()
     if not effective_key:
-        return "⚠️ **Error:** GROQ_API_KEY is missing! Please configure it in secrets."
+        return "⚠️ **Error:** GROQ_API_KEY missing hai!"
 
     try:
         client = Groq(api_key=effective_key)
 
-        # Detect simple greetings to avoid cringe long intros
+        # Detect user's latest message intent
         last_user_msg = ""
         for m in reversed(messages_history):
             if m["role"] == "user":
                 last_user_msg = m["content"].strip().lower()
                 break
 
-        simple_greetings = ["hi", "hello", "hey", "hy", "hlo", "assalamoalaikum", "salam", "kya haal hai", "kaise ho", "kya hal hai"]
-        is_simple_greeting = last_user_msg in simple_greetings
+        simple_greetings = ["hi", "hello", "hey", "hy", "hlo", "assalamoalaikum", "salam", "kya haal hai", "kaise ho"]
+        is_greeting = last_user_msg in simple_greetings
+        is_about_bot = any(w in last_user_msg for w in ["tum kon ho", "tumhare kya feature", "tum kya kar sakte ho", "features", "who are you", "what can you do"])
 
         if active_mode == "🧠 Thinking & Career Assistant":
             persona_instructions = """
-            YOU ARE A HIGHLY PROFESSIONAL CAREER & ATS RESUME EXPERT.
-            - Tone: Encouraging, objective, professional, and clear.
-            - DO NOT roast or insult. Provide constructive resume tips, ATS score improvements, and actionable advice.
+            YOU ARE A PROFESSIONAL CAREER & ATS RESUME EXPERT.
+            - Provide structured, professional advice, ATS resume scoring tips, and constructive recommendations.
             """
         else:
             intensity_map = {
@@ -228,32 +221,41 @@ def get_ai_response(messages_history, active_mode, roast_level, language):
                 "Hard": "ULTIMATE SAVAGE ROAST! Ruthlessly target weak points, buzzwords, and experience gaps."
             }
 
-            if is_simple_greeting:
+            if is_about_bot:
+                persona_instructions = """
+                YOU ARE THE AI ROASTER & CAREER ASSISTANT BOT.
+                User is asking about YOUR features and capabilities.
+                Answer directly, enthusiastically, and smartly in bullet points. List your key features:
+                1. 🔥 Savage Resume Roasting
+                2. 💡 Actionable Career & Resume Solutions
+                3. 🧠 Professional ATS Career Guidance
+                4. 📄 Gemini-style PDF Resume Scanning
+                5. 🌐 Multi-language support (Roman Urdu, English, Hindi, etc.)
+                DO NOT roast a resume when asked about yourself!
+                """
+            elif is_greeting:
                 persona_instructions = f"""
                 YOU ARE A WITTY, QUICK-THINKING AI ROASTER.
-                User said a simple greeting ('{last_user_msg}').
-                STRICT RULE: Reply with ONE short, punchy 1-line sarcastic greeting in natural spoken style. 
-                Do NOT write long intros, do NOT write cringe robotic scripts, and do NOT write walls of text.
-                Example: 'Haan bhai, bolo! Resume roast karwana hai ya waise hi timepass kar rahe ho?'
+                Reply with ONE short, punchy 1-line sarcastic greeting.
+                Example: 'Haan bhai, bolo! Resume roast karwana hai ya career tabahi ki baat karni hai?'
                 """
             else:
                 persona_instructions = f"""
-                YOU ARE AN UNFILTERED, HILARIOUS, AND WITTY AI ROASTER.
+                YOU ARE AN INTELLIGENT AI ROASTER & CAREER CONSULTANT.
                 Roast Level: {roast_level} ({intensity_map.get(roast_level, 'Sharp roast')})
 
-                RULES FOR ROASTING:
-                1. PUNCHY & CONCISE: Keep response between 100-200 words max.
-                2. TARGET SPECIFIC DETAILS: Read the user's text or resume carefully and roast specific skills, projects, gaps, or buzzwords.
-                3. NO REPETITION: Do NOT repeat previous jokes, phrases, or greetings.
+                IMPORTANT DUAL-RESPONSE RULE (WHEN EVALUATING RESUMES/TEXT):
+                Structure your response into 2 distinct sections:
+                1. 🔥 **The Roast:** Witty, sarcastic, sharp attack on weak points or buzzwords.
+                2. 💡 **How to Fix It (Solution):** 2-3 clear, professional, actionable steps to fix those exact weaknesses.
                 """
 
         if language in ["Roman Urdu", "Roman Hindi"]:
             lang_instruction = f"""
             STRICT LANGUAGE & GRAMMAR RULES FOR {language}:
-            1. Use NATURAL, authentic everyday spoken {language} in Latin script (e.g., 'Bhai, resume hai ya shopping list?').
-            2. CORRECT GENDER & GRAMMAR: Use standard second-person masculine/neutral forms (e.g., 'aaye ho', 'kar rahe ho', 'dekh rahe ho'). NEVER use wrong female inflections like 'aayi hai' or broken Google-translated Urdu.
-            3. NO BROKEN TRANSLATIONS: Write like a real native Pakistani/Indian speaker chatting on WhatsApp.
-            4. NO ENGLISH SENTENCES: Write completely in {language}.
+            1. Use NATURAL everyday spoken {language} (Latin script).
+            2. STRICT GENDER RULE: Always address the user in standard masculine/neutral form ('kar rahe ho', 'puch rahe ho', 'aaye ho', 'kaise ho'). NEVER use wrong female inflections ('leti ho', 'kar rahi ho', 'aayi hai').
+            3. NO BROKEN GOOGLE TRANSLATIONS: Write naturally like a real Pakistani/Indian tech user on WhatsApp.
             """
         else:
             lang_instruction = f"STRICT LANGUAGE RULE: Respond strictly in {language}."
@@ -264,13 +266,24 @@ def get_ai_response(messages_history, active_mode, roast_level, language):
         STRICT NEUTRALITY: Do NOT use religious greetings (e.g., Namaste, Salaam, etc.).
         """
 
-        formatted_messages = [{"role": "system", "content": system_persona}] + messages_history[-6:]
+        formatted_messages = [{"role": "system", "content": system_persona}]
+        
+        # Add past chat history (clean text)
+        for msg in messages_history[-6:]:
+            formatted_messages.append({"role": msg["role"], "content": msg["content"]})
+
+        # Inject PDF text only if evaluating PDF right now
+        if active_pdf_text:
+            formatted_messages.append({
+                "role": "system",
+                "content": f"ATTACHED RESUME CONTENT TO EVALUATE:\n{active_pdf_text}"
+            })
 
         completion = call_groq_with_fallback(
             client,
             messages=formatted_messages,
-            temperature=0.7 if is_simple_greeting else (0.85 if active_mode == "🔥 Savage Roast Mode" else 0.3),
-            max_tokens=800,
+            temperature=0.7 if (is_greeting or is_about_bot) else (0.85 if active_mode == "🔥 Savage Roast Mode" else 0.3),
+            max_tokens=900,
             is_pro=st.session_state.is_pro
         )
         return completion.choices[0].message.content
@@ -281,8 +294,8 @@ def start_new_chat():
     new_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     st.session_state.all_chats[new_id] = {"title": "New Chat", "messages": []}
     st.session_state.current_chat_id = new_id
-    st.session_state.pending_pdf_text = None
-    st.session_state.pending_pdf_name = None
+    st.session_state.attached_pdf_text = None
+    st.session_state.attached_pdf_name = None
 
 def delete_chat(chat_id):
     del st.session_state.all_chats[chat_id]
@@ -337,7 +350,7 @@ with st.sidebar:
                 else:
                     st.warning("Please enter a valid key.")
 
-    # 🛠️ DEVELOPER ACCESS SECTION (STRICT SECRETS MATCHING)
+    # DEVELOPER ACCESS SECTION
     with st.expander("🛠️ Developer Access"):
         if st.session_state.is_pro:
             st.info("⚡ You are currently in **Dev Pro Mode**.")
@@ -375,18 +388,6 @@ with st.sidebar:
     roast_level = "Medium"
     if active_mode == "🔥 Savage Roast Mode":
         roast_level = st.select_slider("ROAST INTENSITY:", options=["Normal", "Medium", "Hard"], value="Medium")
-
-    st.markdown("---")
-    
-    # 📱 MOBILE FRIENDLY DEDICATED PDF UPLOADER
-    st.markdown("📄 **Upload Resume PDF (Mobile Friendly):**")
-    uploaded_pdf = st.file_uploader("Select Resume PDF", type=["pdf"], key="sidebar_pdf")
-    if uploaded_pdf:
-        pdf_text = read_pdf(uploaded_pdf)
-        if pdf_text:
-            st.session_state.pending_pdf_text = pdf_text
-            st.session_state.pending_pdf_name = uploaded_pdf.name
-            st.success(f"✅ Loaded: {uploaded_pdf.name}")
 
     st.markdown("---")
     if st.button("➕ New Chat", use_container_width=True):
@@ -437,31 +438,43 @@ for message in current_chat["messages"]:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Chat Input Bar (Handles text input)
+# 📎 GEMINI-STYLE ATTACHMENT BAR RIGHT ABOVE CHAT INPUT
+col_attach, col_status = st.columns([1, 4])
+with col_attach:
+    with st.popover("📎 Attach PDF"):
+        file_input = st.file_uploader("Upload Resume PDF", type=["pdf"], key="main_pdf_uploader")
+        if file_input:
+            p_text = read_pdf(file_input)
+            if p_text:
+                st.session_state.attached_pdf_text = p_text
+                st.session_state.attached_pdf_name = file_input.name
+                st.success(f"Loaded: {file_input.name}")
+
+with col_status:
+    if st.session_state.attached_pdf_name:
+        st.markdown(f"📄 **Attached:** `{st.session_state.attached_pdf_name}`")
+
+# Chat Input Bar
 prompt_text = st.chat_input(f"Type a message... ({active_mode})")
 
-if prompt_text or st.session_state.pending_pdf_text:
-    user_text = prompt_text if prompt_text else "Please evaluate my uploaded resume."
+if prompt_text or st.session_state.attached_pdf_text:
+    user_text = prompt_text if prompt_text else "Please evaluate my attached resume."
     
-    file_context = ""
+    current_pdf_text = st.session_state.attached_pdf_text
     user_display_msg = user_text
 
-    if st.session_state.pending_pdf_text:
-        pdf_name = st.session_state.pending_pdf_name
-        file_context = f"\n\n--- [ATTACHED RESUME CONTENT: {pdf_name}] ---\n{st.session_state.pending_pdf_text}"
-        user_display_msg = f"📎 **[Attached Resume: {pdf_name}]**\n\n{user_text}"
-        # Reset pending PDF after attaching
-        st.session_state.pending_pdf_text = None
-        st.session_state.pending_pdf_name = None
-
-    combined_user_content = f"{user_text}{file_context}"
+    if st.session_state.attached_pdf_name and current_pdf_text:
+        user_display_msg = f"📎 **[Attached Resume: {st.session_state.attached_pdf_name}]**\n\n{user_text}"
+        # Consume the attachment so it doesn't leak into future turns
+        st.session_state.attached_pdf_text = None
+        st.session_state.attached_pdf_name = None
 
     # Auto Title Generator
     if not current_chat["messages"] or current_chat["title"] == "New Chat":
         current_chat["title"] = generate_chat_title(user_text)
 
     st.chat_message("user").markdown(user_display_msg)
-    current_chat["messages"].append({"role": "user", "content": combined_user_content})
+    current_chat["messages"].append({"role": "user", "content": user_display_msg})
 
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
@@ -469,7 +482,8 @@ if prompt_text or st.session_state.pending_pdf_text:
                 current_chat["messages"],
                 active_mode,
                 roast_level,
-                language
+                language,
+                active_pdf_text=current_pdf_text
             )
             st.markdown(response)
             current_chat["messages"].append({"role": "assistant", "content": response})
