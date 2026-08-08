@@ -90,7 +90,7 @@ st.markdown("""
         margin: 0;
     }
 
-    /* Input & Upload Box styling */
+    /* File Uploader Container */
     [data-testid="stFileUploader"] {
         background-color: #161B22 !important;
         border: 1px dashed #30363D !important;
@@ -132,7 +132,7 @@ def read_pdf(uploaded_file):
                 text += extracted + "\n"
         return text.strip() if text.strip() else None
     except Exception as e:
-        st.error(f"PDF parhne mein masla hua: {e}")
+        st.error(f"Error reading PDF: {e}")
         return None
 
 def get_effective_api_key():
@@ -156,7 +156,7 @@ def verify_lemonsqueezy_license(license_key):
     except Exception as e:
         return False, f"Verification error: {str(e)}"
 
-# ⚡ Groq Call with Frequency & Presence Penalty to stop repetitions
+# ⚡ Groq Call with Frequency & Presence Penalties to Stop Repetitions
 def call_groq_with_fallback(client, messages, temperature=0.7, max_tokens=1000, is_pro=False):
     primary_model = "llama-3.3-70b-versatile" if is_pro else "llama-3.1-8b-instant"
     fallback_model = "llama-3.1-8b-instant"
@@ -166,7 +166,7 @@ def call_groq_with_fallback(client, messages, temperature=0.7, max_tokens=1000, 
         "temperature": temperature,
         "max_tokens": max_tokens,
         "frequency_penalty": 0.6,  # Prevents repeating same words
-        "presence_penalty": 0.6,   # Encourages new topics/phrases
+        "presence_penalty": 0.6,   # Encourages fresh responses
     }
 
     try:
@@ -200,7 +200,7 @@ def generate_chat_title(first_user_msg):
 def get_ai_response(messages_history, active_mode, roast_level, language):
     effective_key = get_effective_api_key()
     if not effective_key:
-        return "⚠️ **Error:** GROQ_API_KEY missing hai!"
+        return "⚠️ **Error:** GROQ_API_KEY is missing! Please configure it in secrets."
 
     try:
         client = Groq(api_key=effective_key)
@@ -243,7 +243,7 @@ def get_ai_response(messages_history, active_mode, roast_level, language):
         STRICT NEUTRALITY: Do NOT use religious greetings (e.g., Namaste, Salaam, etc.).
         """
 
-        formatted_messages = [{"role": "system", "content": system_persona}] + messages_history[-6:]  # Keep context fresh
+        formatted_messages = [{"role": "system", "content": system_persona}] + messages_history[-6:]  # Keeps context fresh
 
         completion = call_groq_with_fallback(
             client,
@@ -285,13 +285,26 @@ with st.sidebar:
         </div>
     """, unsafe_allow_html=True)
 
+    # Status Display
     if st.session_state.is_pro:
         st.markdown("🔥 **Status:** <span style='background:#238636; color:#FFF; padding:2px 8px; border-radius:10px; font-size:0.75rem;'>Pro Active</span>", unsafe_allow_html=True)
     else:
         st.markdown("🟢 **Status:** <span style='background:#1F6FEB; color:#FFF; padding:2px 8px; border-radius:10px; font-size:0.75rem;'>Free Plan</span>", unsafe_allow_html=True)
-        with st.expander("🔑 Activate Pro License"):
+        
+        st.markdown("""
+            <div style="background-color:#0D1117; border:1px solid #30363D; border-radius:8px; padding:10px; margin:10px 0;">
+                <p style="margin:0; font-size:0.8rem; color:#8B949E;">Upgrade for unlimited speed & priority AI models.</p>
+                <a href="https://airoaster.lemonsqueezy.com/checkout/buy/ec7ff9c8-e11c-4102-aa52-3f5884f8fb2c" target="_blank" style="text-decoration:none;">
+                    <button style="width:100%; margin-top:8px; background-color:#238636; color:white; border:none; padding:6px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.85rem;">
+                        ⚡ Upgrade to Pro ($6)
+                    </button>
+                </a>
+            </div>
+        """, unsafe_allow_html=True)
+
+        with st.expander("🔑 Already paid? Activate License"):
             license_input = st.text_input("Lemon Squeezy License Key:", type="password")
-            if st.button("Activate"):
+            if st.button("Activate Pro"):
                 if license_input:
                     valid, msg = verify_lemonsqueezy_license(license_input)
                     if valid:
@@ -300,6 +313,35 @@ with st.sidebar:
                         st.rerun()
                     else:
                         st.error(msg)
+                else:
+                    st.warning("Please enter a valid key.")
+
+    # 🛠️ DEVELOPER ACCESS SECTION (STRICT SECRETS MATCHING)
+    with st.expander("🛠️ Developer Access"):
+        if st.session_state.is_pro:
+            st.info("⚡ You are currently in **Dev Pro Mode**.")
+            if st.button("🔴 Deactivate Dev Mode", use_container_width=True):
+                st.session_state.is_pro = False
+                st.success("Switched to Free Mode!")
+                st.rerun()
+        else:
+            entered_key = st.text_input("Enter Secret Key", type="password", key="dev_key_input")
+            if st.button("🔓 Activate Dev Pro", use_container_width=True):
+                dev_secret = None
+                try:
+                    if "DEV_SECRET_KEY" in st.secrets and st.secrets["DEV_SECRET_KEY"]:
+                        dev_secret = st.secrets["DEV_SECRET_KEY"]
+                except Exception:
+                    pass
+
+                if not dev_secret:
+                    st.error("❌ DEV_SECRET_KEY is not configured in st.secrets!")
+                elif entered_key and entered_key == dev_secret:
+                    st.session_state.is_pro = True
+                    st.success("🎉 Dev Pro Mode Activated Successfully!")
+                    st.rerun()
+                else:
+                    st.error("❌ Invalid Secret Key!")
 
     language = st.selectbox(
         "Response Language:",
@@ -315,7 +357,7 @@ with st.sidebar:
 
     st.markdown("---")
     
-    # 📱 MOBILE FRIENDLY DEDICATED PDF UPLOADER IN SIDEBAR / MAIN
+    # 📱 MOBILE FRIENDLY DEDICATED PDF UPLOADER
     st.markdown("📄 **Upload Resume PDF (Mobile Friendly):**")
     uploaded_pdf = st.file_uploader("Select Resume PDF", type=["pdf"], key="sidebar_pdf")
     if uploaded_pdf:
