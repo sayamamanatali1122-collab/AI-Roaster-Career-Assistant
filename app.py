@@ -283,7 +283,7 @@ div[data-testid="stChatInput"] textarea {
     margin: 12px 0 6px 0;
 }
 
-/* ── STREAMLIT OVERRIDES & EXPANDER CLEAN FIX ── */
+/* ── STREAMLIT OVERRIDES & EXPANDER OVERLAP FIX ── */
 .stSelectbox > label,
 .stRadio > label,
 .stSlider > label { color: #8B949E !important; font-size: 0.82rem !important; font-weight: 600 !important; }
@@ -302,8 +302,24 @@ div[data-testid="stChatInput"] textarea {
     border: 1px solid #21262D !important;
     border-radius: 10px !important;
 }
-.stExpander details summary { padding-left: 4px !important; }
-.stExpander details summary p { color: #8B949E !important; font-size: 0.85rem !important; font-weight: 600 !important; margin: 0 !important; display: inline-block !important; }
+/* Complete Fix for Expander Icon Overlap Issue */
+.stExpander details { width: 100%; }
+.stExpander details summary {
+    display: flex !important;
+    align-items: center !important;
+    padding: 10px 12px !important;
+}
+.stExpander details summary svg {
+    order: 2 !important;
+    margin-left: auto !important;
+}
+.stExpander details summary p {
+    color: #8B949E !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    order: 1 !important;
+}
 hr { border-color: #1C2333 !important; margin: 10px 0 !important; }
 .stSpinner > div { border-top-color: #388BFD !important; }
 </style>
@@ -691,15 +707,6 @@ with st.sidebar:
                     st.session_state.is_pro = True; st.rerun()
                 else:
                     st.error("❌ Invalid key.")
-
-    st.markdown("---")
-    
-    # 🌟 Professional Toggle Switch Button for Pro / Free Plan Mode
-    st.markdown('<p class="section-label">System Mode Toggle</p>', unsafe_allow_html=True)
-    toggle_pro = st.toggle("⚡ Enable Pro Engine", value=st.session_state.is_pro, help="Switch between Free and Pro model instantly.")
-    if toggle_pro != st.session_state.is_pro:
-        st.session_state.is_pro = toggle_pro
-        st.rerun()
 
     st.markdown("---")
     language = st.selectbox("🌐 Language:",
