@@ -23,7 +23,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ⚡ STRICT SINGLE SMOOTH PILL BORDER STYLING (NO OVERLAPPING DOUBLE BORDERS)
+# ⚡ STRICT SINGLE SMOOTH PILL BORDER STYLING
 st.markdown("""
 <style>
     /* Dark Theme Core */
@@ -351,10 +351,19 @@ def get_ai_response(messages_history, active_mode, roast_level, language, active
 
         if language in ["Roman Urdu", "Roman Hindi"]:
             lang_instruction = f"""
-            STRICT SIMPLE & NATURAL ROMAN URDU RULES:
-            1. Use 100% SIMPLE, NATURAL everyday Pakistani Roman Urdu (e.g., 'Bhai', 'Yaar', 'Baat suno', 'Khas', 'Zaroori', 'Kya chal raha hai', 'Lagta hai').
-            2. NO SHUDDH HINDI OR COMPLEX ENGLISH SLANG: NEVER use words like 'adarsh', 'vishesh', 'mehsus', 'avashyak', 'saari', 'karya', 'badaa' or confusing slang ('Orange Tan'). Use simple local terms everyone understands.
-            3. PERFECT NATURAL GRAMMAR: Always address user in standard masculine/neutral form ('kar rahe ho', 'puch rahe ho', 'aaye ho', 'kaise ho').
+            STRICT AUTHENTIC PAKISTANI ROMAN URDU RULES:
+            1. RESPOND 100% IN NATURAL PAKISTANI ROMAN URDU (Latin script).
+            2. STRICTLY BANNED HINDI WORDS (NEVER USE THESE):
+               - DO NOT USE 'jatil' -> Use 'mushkil' or 'puchida'.
+               - DO NOT USE 'samadhan' -> Use 'hal' or 'solution'.
+               - DO NOT USE 'sthaniya' -> Use 'muqami' or 'local'.
+               - DO NOT USE 'ashaon' -> Use 'umeedon'.
+               - DO NOT USE 'manna' -> Use 'khayal' or 'sochna'.
+               - DO NOT USE 've' -> Use 'woh'.
+               - DO NOT USE 'vishesh', 'adarsh', 'mehsus', 'avashyak', 'saari', 'karya', 'badaa'.
+            3. ALWAYS USE AUTHENTIC ROMAN URDU VOCABULARY:
+               Use words like 'mushkil', 'hal', 'muqami', 'umeedon', 'khayal', 'zaroorat', 'woh', 'baat', 'masla', 'hukumat'.
+            4. PERFECT NATURAL MASCULINE GRAMMAR: Always address user in standard form ('kar rahe ho', 'puch rahe ho', 'aaye ho', 'kaise ho').
             """
         else:
             lang_instruction = f"STRICT LANGUAGE RULE: Respond strictly in {language}."
